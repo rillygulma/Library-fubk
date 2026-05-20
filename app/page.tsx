@@ -142,7 +142,7 @@ const HomePage = () => {
     },
     {
       link: "SECTIONS & UNITS",
-      path: "/SECTIONS-UNITS",
+      path: "/staff",
     },
     {
       link: "Branches",
