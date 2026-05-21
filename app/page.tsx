@@ -168,11 +168,11 @@ const HomePage = () => {
     },
     {
       link: "Library Membership",
-      path: "/Library-Membership",
+      path: "/library-Membership",
     },
     {
       link: "News & Events",
-      path: "/Event",
+      path: "/events",
     },
   ];
 
