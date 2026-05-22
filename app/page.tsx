@@ -115,7 +115,7 @@ const HomePage = () => {
       ],
     },
     {
-      link: "Resources⬇️",
+      link: "E-Library⬇️",
       path: "",
       submenu: [
         {
@@ -123,16 +123,8 @@ const HomePage = () => {
           subpath: "/fubkAiChat",
         },
         {
-          sublink: "TERAS",
-          subpath: "https://teras.ng/",
-        },
-        {
-          sublink: "Subscription Database",
-          subpath: "/subscription-database",
-        },
-        {
-          sublink: "Free Resources",
-          subpath: "/free-resources",
+          sublink: "E-Library Catalog",
+          subpath: "/e-library/databases",
         },
       ],
     },
