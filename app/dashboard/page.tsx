@@ -17,7 +17,10 @@ import {
   Eye,
   Pencil,
   Trash2,
+  Megaphone,
 } from "lucide-react";
+
+import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -92,80 +95,85 @@ export default function AdminDashboard() {
         />
       )}
 
-     {/* Sidebar */}
-<aside
-  className={`fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-white shadow-2xl transition-transform duration-300 lg:translate-x-0 ${
-    sidebarOpen ? "translate-x-0" : "-translate-x-full"
-  }`}
->
-  {/* Top */}
-  <div className="flex items-center justify-between border-b p-6">
-    <div className="flex items-center gap-3">
-      <Image
-        src="/images/fubk-logo.jpg"
-        alt="FUBK Logo"
-        width={48}
-        height={48}
-        className="rounded-full object-cover"
-      />
-
-      <div>
-        <h1 className="text-2xl font-bold text-blue-700">
-          FUBK Admin
-        </h1>
-        <p className="text-sm text-gray-500">
-          Management Dashboard
-        </p>
-      </div>
-    </div>
-
-    <button
-      className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
-      onClick={() => setSidebarOpen(false)}
-    >
-      <X className="h-5 w-5" />
-    </button>
-  </div>
-
-  {/* Navigation */}
-  <nav className="flex-1 overflow-y-auto space-y-2 p-4">
-    {[
-      { icon: LayoutDashboard, label: "Dashboard" },
-      { icon: Users, label: "Users" },
-      { icon: BookOpen, label: "Library" },
-      { icon: FileText, label: "Blog Posts" },
-      { icon: TrendingUp, label: "Analytics" },
-      { icon: Settings, label: "Settings" },
-    ].map((item, index) => (
-      <button
-        key={index}
-        className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all duration-300 ${
-          index === 0
-            ? "bg-blue-600 text-white shadow-lg"
-            : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-white shadow-2xl transition-transform duration-300 lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <item.icon className="h-5 w-5" />
-        <span className="font-medium">{item.label}</span>
-      </button>
-    ))}
-  </nav>
+        {/* Top */}
+        <div className="flex items-center justify-between border-b p-6">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/fubk-logo.jpg"
+              alt="FUBK Logo"
+              width={48}
+              height={48}
+              className="rounded-full object-cover"
+            />
 
-  {/* Bottom Card */}
-  <div className="p-4">
-    <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl">
-      <h2 className="text-lg font-semibold">Need Help?</h2>
+            <div>
+              <h1 className="text-2xl font-bold text-blue-700">FUBK Admin</h1>
+              <p className="text-sm text-gray-500">Management Dashboard</p>
+            </div>
+          </div>
 
-      <p className="mt-2 text-sm text-blue-100">
-        Contact the ICT department for technical assistance.
-      </p>
+          <button
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-      <button className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
-        Contact Support
-      </button>
-    </div>
-  </div>
-</aside>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto space-y-2 p-4">
+          {[
+            {
+              icon: LayoutDashboard,
+              label: "Dashboard",
+              path: "/admin/dashboard",
+            },
+            { icon: Users, label: "Users", path: "/admin/users" },
+            {
+              icon: Megaphone,
+              label: "Announcements",
+              path: "/admin/announcements",
+            },
+            { icon: FileText, label: "Blog Posts", path: "/admin/blog" },
+            { icon: TrendingUp, label: "Analytics", path: "/admin/analytics" },
+            { icon: Settings, label: "Settings", path: "/admin/settings" },
+          ].map((item, index) => (
+            <Link
+              key={index}
+              href={item.path}
+              className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all duration-300 ${
+                index === 0
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="font-medium">{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Bottom Card */}
+        <div className="p-4">
+          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl">
+            <h2 className="text-lg font-semibold">Need Help?</h2>
+
+            <p className="mt-2 text-sm text-blue-100">
+              Contact the ICT department for technical assistance.
+            </p>
+
+            <button className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </aside>
 
       {/* Main Content */}
       <main className="lg:ml-72">
@@ -270,9 +278,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">New Registrations</p>
-                  <h3 className="mt-2 text-3xl font-bold text-gray-800">
-                    248
-                  </h3>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-800">248</h3>
                 </div>
 
                 <div className="rounded-2xl bg-green-100 p-4 text-green-700">
@@ -371,8 +377,8 @@ export default function AdminDashboard() {
                             user.status === "Active"
                               ? "bg-green-100 text-green-700"
                               : user.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-red-100 text-red-700"
                           }`}
                         >
                           {user.status}

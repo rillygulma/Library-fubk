@@ -10,7 +10,7 @@ export async function GET() {
     const posts = await Blog.find().sort({ createdAt: -1 });
 
     return NextResponse.json(posts, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Failed to fetch blogs" },
       { status: 500 }
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const newPost = await Blog.create(body);
 
     return NextResponse.json(newPost, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Failed to create blog post" },
       { status: 500 }
@@ -70,7 +70,7 @@ export async function PUT(req: Request) {
       { message: "Blog updated successfully", data: updatedPost },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Failed to update blog" },
       { status: 500 }
@@ -106,7 +106,7 @@ export async function DELETE(req: Request) {
       { message: "Blog deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Failed to delete blog" },
       { status: 500 }

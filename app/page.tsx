@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import axios from "axios";
 import Image from "next/image";
 import { useTypewriter } from "react-simple-typewriter";
 
@@ -13,6 +12,7 @@ import { FaBarsStaggered, FaXmark } from "react-icons/fa6";
 
 import "swiper/css";
 import "swiper/css/effect-cards";
+import Footer from "@/components/Footer";
 
 type Announcement = {
   title: string;
@@ -43,22 +43,19 @@ const HomePage = () => {
   });
 
   const [showPopup, setShowPopup] = useState(false);
-  const [announcement, setAnnouncement] =
-    useState<Announcement | null>(null);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
-        const res = await axios.get(
-          "https://fubk-library-backend-server.onrender.com/api/announcements/allAnnouncement"
-        );
+        const res = await fetch("/api/announcements");
+        const data = await res.json();
 
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setAnnouncement(res.data[0]);
+        if (Array.isArray(data) && data.length > 0) {
+          setAnnouncement(data[0]);
           setShowPopup(true);
         }
       } catch (error) {
@@ -76,8 +73,7 @@ const HomePage = () => {
 
     window.addEventListener("scroll", handleScroll);
 
-    return () =>
-      window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -180,176 +176,129 @@ const HomePage = () => {
     <>
       {/* NAVBAR */}
       <header className="fixed left-0 right-0 top-0 z-50 w-full transition-all duration-300">
-        <nav
-  className={`py-4 px-5 ${
-    isSticky ? "bg-blue-300" : ""
-  }`}
->
-  <div className="mx-auto max-w-7xl">
-    <div className="flex items-center justify-between gap-4 rounded-xl bg-sky-600">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-4"
-            >
-              <Image
-                src="/images/fubk-logo.jpg"
-                alt="FUBK Logo"
-                width={60}
-                height={60}
-                className="rounded ml-2"
-              />
+        <nav className={`py-4 px-5 ${isSticky ? "bg-blue-300" : ""}`}>
+          <div className="mx-auto max-w-7xl">
+            <div className="flex items-center justify-between gap-4 rounded-xl bg-sky-600">
+              {/* Logo */}
+              <Link href="/" className="flex items-center gap-4">
+                <Image
+                  src="/images/fubk-logo.jpg"
+                  alt="FUBK Logo"
+                  width={60}
+                  height={60}
+                  className="rounded ml-2"
+                />
 
-              <span className="hidden text-sm font-bold leading-6 text-white md:block lg:text-lg">
-                FEDERAL UNIVERSITY BIRNIN KEBBI
-                <br />
-                LIBRARY COMPLEX
-              </span>
-            </Link>
+                <span className="hidden text-sm font-bold leading-6 text-white md:block lg:text-lg">
+                  FEDERAL UNIVERSITY BIRNIN KEBBI
+                  <br />
+                  LIBRARY COMPLEX
+                </span>
+              </Link>
 
-            {/* Desktop Nav */}
-            <ul className="hidden items-center space-x-6 md:flex">
-              {navItems.map(({ link, path, submenu }) => (
-                <li
-                  key={link}
-                  className="relative"
-                >
-                  {submenu ? (
-                    <>
-                      <button
-                        onClick={() =>
-                          toggleSubmenu(link)
-                        }
-                        className="text-sm uppercase text-white transition hover:text-black"
-                      >
-                        {link}
-                      </button>
+              {/* Desktop Nav */}
+              <ul className="hidden items-center space-x-6 md:flex">
+                {navItems.map(({ link, path, submenu }) => (
+                  <li key={link} className="relative">
+                    {submenu ? (
+                      <>
+                        <button
+                          onClick={() => toggleSubmenu(link)}
+                          className="text-sm uppercase text-white transition hover:text-black"
+                        >
+                          {link}
+                        </button>
 
-                      {openSubmenu === link && (
-                        <ul className="absolute left-0 top-full mt-3 w-64 rounded-lg bg-blue-500 p-3 shadow-xl">
-                          {submenu.map(
-                            ({
-                              sublink,
-                              subpath,
-                            }) => (
-                              <li
-                                key={sublink}
-                                className="mb-2"
-                              >
+                        {openSubmenu === link && (
+                          <ul className="absolute left-0 top-full mt-3 w-64 rounded-lg bg-blue-500 p-3 shadow-xl">
+                            {submenu.map(({ sublink, subpath }) => (
+                              <li key={sublink} className="mb-2">
                                 <Link
                                   href={subpath}
-                                  onClick={
-                                    closeMenus
-                                  }
+                                  onClick={closeMenus}
                                   className="block rounded-md px-3 py-2 text-sm uppercase text-white transition hover:bg-blue-400 hover:text-black"
                                 >
                                   {sublink}
                                 </Link>
                               </li>
-                            )
-                          )}
-                        </ul>
-                      )}
-                    </>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        href={path}
+                        className="text-sm uppercase text-white transition hover:text-black"
+                      >
+                        {link}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+
+                <Link
+                  href="/admin/dashboard"
+                  className="rounded-lg bg-white mr-2 px-4 py-2 text-sm font-semibold uppercase text-blue-700 transition hover:bg-black hover:text-white"
+                >
+                  Login
+                </Link>
+              </ul>
+
+              {/* Mobile Toggle */}
+              <div className="md:hidden">
+                <button onClick={toggleMenu} className="text-white">
+                  {isMenuOpen ? (
+                    <FaXmark className="h-6 w-6" />
                   ) : (
-                    <Link
-                      href={path}
-                      className="text-sm uppercase text-white transition hover:text-black"
-                    >
-                      {link}
-                    </Link>
+                    <FaBarsStaggered className="h-6 w-6" />
                   )}
-                </li>
-              ))}
-
-              <Link
-                href="/admin/dashboard"
-                className="rounded-lg bg-white mr-2 px-4 py-2 text-sm font-semibold uppercase text-blue-700 transition hover:bg-black hover:text-white"
-              >
-                Login
-              </Link>
-            </ul>
-
-            {/* Mobile Toggle */}
-            <div className="md:hidden">
-              <button
-                onClick={toggleMenu}
-                className="text-white"
-              >
-                {isMenuOpen ? (
-                  <FaXmark className="h-6 w-6" />
-                ) : (
-                  <FaBarsStaggered className="h-6 w-6" />
-                )}
-              </button>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Menu */}
+          {/* Mobile Menu */}
           {isMenuOpen && (
             <div className="mt-4 rounded-xl bg-blue-500 p-5 md:hidden">
               <div className="space-y-4">
-                {navItems.map(
-                  ({ link, path, submenu }) => (
-                    <div key={link}>
-                      {submenu ? (
-                        <>
-                          <button
-                            onClick={() =>
-                              toggleSubmenu(
-                                link
-                              )
-                            }
-                            className="block text-left text-sm uppercase text-white"
-                          >
-                            {link}
-                          </button>
-
-                          {openSubmenu ===
-                            link && (
-                            <ul className="ml-4 mt-3 space-y-2">
-                              {submenu.map(
-                                ({
-                                  sublink,
-                                  subpath,
-                                }) => (
-                                  <li
-                                    key={
-                                      sublink
-                                    }
-                                  >
-                                    <Link
-                                      href={
-                                        subpath
-                                      }
-                                      onClick={
-                                        closeMenus
-                                      }
-                                      className="block text-sm uppercase text-white"
-                                    >
-                                      {
-                                        sublink
-                                      }
-                                    </Link>
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          )}
-                        </>
-                      ) : (
-                        <Link
-                          href={path}
-                          onClick={closeMenus}
-                          className="block text-sm uppercase text-white"
+                {navItems.map(({ link, path, submenu }) => (
+                  <div key={link}>
+                    {submenu ? (
+                      <>
+                        <button
+                          onClick={() => toggleSubmenu(link)}
+                          className="block text-left text-sm uppercase text-white"
                         >
                           {link}
-                        </Link>
-                      )}
-                    </div>
-                  )
-                )}
+                        </button>
+
+                        {openSubmenu === link && (
+                          <ul className="ml-4 mt-3 space-y-2">
+                            {submenu.map(({ sublink, subpath }) => (
+                              <li key={sublink}>
+                                <Link
+                                  href={subpath}
+                                  onClick={closeMenus}
+                                  className="block text-sm uppercase text-white"
+                                >
+                                  {sublink}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        href={path}
+                        onClick={closeMenus}
+                        className="block text-sm uppercase text-white"
+                      >
+                        {link}
+                      </Link>
+                    )}
+                  </div>
+                ))}
 
                 <Link
                   href="/admin/dashboard"
@@ -372,20 +321,14 @@ const HomePage = () => {
               📢 {announcement.title}
             </h3>
 
-            <p className="mb-3 text-gray-700">
-              {announcement.message}
-            </p>
+            <p className="mb-3 text-gray-700">{announcement.message}</p>
 
             <p className="text-right text-sm italic text-gray-500">
-              -{" "}
-              {announcement.createdBy ||
-                "University Librarian"}
+              - {announcement.createdBy || "University Librarian"}
             </p>
 
             <button
-              onClick={() =>
-                setShowPopup(false)
-              }
+              onClick={() => setShowPopup(false)}
               className="mt-5 rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
             >
               Close
@@ -401,33 +344,18 @@ const HomePage = () => {
             </h1>
 
             <p className="text-lg leading-8 text-gray-700 md:w-4/5">
-              Federal University Birnin Kebbi
-              Library was established in
-              2013 to support the University
-              in achieving its goals of
-              teaching, learning, and
-              research.
+              Federal University Birnin Kebbi Library was established in 2013 to
+              support the University in achieving its goals of teaching,
+              learning, and research.
             </p>
 
             <Link href="/welcomeNote">
               <button className="rounded-lg bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700">
-                Read the University Librarian
-                Welcome Note
+                Read the University Librarian Welcome Note
               </button>
             </Link>
 
-            {/* Search */}
-            <div className="flex max-w-lg">
-              <input
-                type="search"
-                placeholder="Search a book"
-                className="w-full rounded-l-md border border-gray-300 px-4 py-3 outline-none"
-              />
-
-              <button className="rounded-r-md bg-blue-700 px-6 py-3 text-white transition hover:bg-black">
-                Search
-              </button>
-            </div>
+            
           </div>
 
           {/* Right */}
@@ -482,6 +410,7 @@ const HomePage = () => {
           }
         `}</style>
       </section>
+      <Footer />
     </>
   );
 };
