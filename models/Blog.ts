@@ -13,29 +13,31 @@ export interface IBlog extends Document {
 const BlogSchema = new Schema<IBlog>(
   {
     title: {
-         type: String, 
-         required: true, 
+      type: String,
+      required: true,
     },
-    description: { 
-        type: String, 
-        required: true, 
+    description: {
+      type: String,
+      required: true,
     },
-    content: { 
-        type: String, 
-        required: true, 
+    content: {
+      type: String,
+      required: true,
     },
-    date: { 
-        type: String, 
+    date: {
+      type: String,
+      default: () => new Date().toISOString(),
+    },
+    images: [
+      {
+        type: String,
         required: true,
-    },
-    images: [{ 
-        type: String, 
-        required: true, 
-    }],
+      },
+    ],
   },
-  { 
-    timestamps: true 
-    },
+  {
+    timestamps: true,
+  },
 );
 
 export default mongoose.models.Blog ||

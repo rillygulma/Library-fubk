@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Bot, SendHorizonal } from "lucide-react";
 
 type Message = {
   role: "user" | "bot";
@@ -9,19 +10,43 @@ type Message = {
 };
 
 export default function LibraryChatbot() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "bot",
+      text: `👋 Welcome to FUBK Library AI Assistant.
+
+You can ask about:
+• Library registration
+• Borrowing books
+• E-library services
+• Opening hours
+• Renewals & fines
+• Research databases`,
+    },
+  ]);
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const formatResponse = (text: string) => {
+    return text.split("\n").map((line, index) => (
+      <p key={index} className="mb-2 leading-relaxed">
+        {line}
+      </p>
+    ));
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -32,6 +57,9 @@ export default function LibraryChatbot() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+
+    const currentInput = input;
+
     setInput("");
     setLoading(true);
 
@@ -41,14 +69,18 @@ export default function LibraryChatbot() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          message: currentInput,
+        }),
       });
 
       const data = await res.json();
 
       const botMessage: Message = {
         role: "bot",
-        text: data.reply || "No response from Gemini.",
+        text:
+          data.reply ||
+          "Sorry, I could not generate a response.",
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -57,7 +89,7 @@ export default function LibraryChatbot() {
         ...prev,
         {
           role: "bot",
-          text: "Error connecting to Gemini API.",
+          text: "❌ Error connecting to AI service.",
         },
       ]);
     } finally {
@@ -66,92 +98,100 @@ export default function LibraryChatbot() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* HEADER */}
-      <header className="bg-white shadow-md p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen flex items-center justify-center p-2">
+      {/* CHATBOX */}
+      <div className="w-full max-w-[420px] h-[90vh] max-h-[700px] bg-white rounded-3xl shadow-2xl border overflow-hidden flex flex-col">
+        {/* HEADER */}
+        <div className="bg-blue-600 text-white p-4 flex items-center gap-3">
           <Image
             src="/images/fubk-logo.jpg"
             alt="FUBK Logo"
-            width={42}
-            height={42}
-            className="rounded-lg object-cover"
+            width={45}
+            height={45}
+            className="rounded-full object-cover"
           />
 
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-gray-800">
-              📚 FUBK Library AI Assistant
+            <h1 className="font-semibold text-sm md:text-base">
+              FUBK Library AI Assistant
             </h1>
-            <p className="text-xs text-gray-500">
-              Powered by Gemini AI
+
+            <p className="text-xs text-blue-100">
+              Online • Ask library questions only
             </p>
           </div>
         </div>
 
-        <span className="text-xs md:text-sm text-gray-500 hidden md:block">
-          Ask library questions only
-        </span>
-      </header>
-
-      {/* CHAT AREA */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-10">
-            <p className="text-lg">👋 Welcome to FUBK Library AI</p>
-            <p className="text-sm">
-              Ask about books, borrowing rules, fines, and library services.
-            </p>
-          </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${
-              msg.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+        {/* MESSAGES */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4">
+          {messages.map((msg, i) => (
             <div
-              className={`max-w-[80%] md:max-w-[60%] px-4 py-3 rounded-2xl text-sm md:text-base shadow-sm ${
+              key={i}
+              className={`flex ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-sm"
-                  : "bg-white text-gray-800 border rounded-bl-sm"
+                  ? "justify-end"
+                  : "justify-start"
               }`}
             >
-              {msg.text}
+              {msg.role === "bot" ? (
+                <div className="flex items-start gap-2 max-w-[85%]">
+                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Bot size={16} />
+                  </div>
+
+                  <div className="bg-white border shadow-sm rounded-2xl rounded-bl-sm px-4 py-3 text-sm text-gray-700">
+                    {formatResponse(msg.text)}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-br-sm text-sm shadow-sm max-w-[85%]">
+                  {msg.text}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
 
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white border px-4 py-3 rounded-2xl text-gray-500 text-sm animate-pulse">
-              Gemini is thinking...
+          {/* LOADING */}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-2 bg-white border rounded-2xl px-4 py-3 text-sm text-gray-500 shadow-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
+
+                <span className="ml-2">
+                  FUBK AI is typing...
+                </span>
+              </div>
             </div>
+          )}
+
+          <div ref={bottomRef} />
+        </div>
+
+        {/* INPUT */}
+        <div className="border-t bg-white p-3">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-2xl px-3 py-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && sendMessage()
+              }
+              placeholder="Ask library questions..."
+              className="flex-1 bg-transparent outline-none text-sm"
+            />
+
+            <button
+              onClick={sendMessage}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-xl transition disabled:opacity-50"
+            >
+              <SendHorizonal size={18} />
+            </button>
           </div>
-        )}
-
-        <div ref={bottomRef} />
-      </main>
-
-      {/* INPUT */}
-      <footer className="p-3 md:p-4 bg-white border-t flex items-center gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask about library rules, books, borrowing..."
-          className="flex-1 border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-sm font-medium transition disabled:opacity-50"
-        >
-          Send
-        </button>
-      </footer>
+        </div>
+      </div>
     </div>
   );
 }

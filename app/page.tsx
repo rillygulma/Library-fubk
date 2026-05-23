@@ -48,23 +48,33 @@ const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  
   useEffect(() => {
-    const fetchAnnouncement = async () => {
-      try {
-        const res = await fetch("/api/announcements");
-        const data = await res.json();
+  const fetchAnnouncement = async () => {
+    try {
+      const res = await fetch("/api/announcements");
 
-        if (Array.isArray(data) && data.length > 0) {
-          setAnnouncement(data[0]);
-          setShowPopup(true);
-        }
-      } catch (error) {
-        console.error("Failed to fetch announcement:", error);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("API ERROR:", text);
+        return;
       }
-    };
 
-    fetchAnnouncement();
-  }, []);
+      const result = await res.json();
+
+      const announcements = result?.data;
+
+      if (Array.isArray(announcements) && announcements.length > 0) {
+        setAnnouncement(announcements[0]);
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error("Failed to fetch announcement:", error);
+    }
+  };
+
+  fetchAnnouncement();
+}, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,7 +130,7 @@ const HomePage = () => {
       submenu: [
         {
           sublink: "Fubk AI I Know Everything",
-          subpath: "/fubkAiChat",
+          subpath: "/ai-chatbot",
         },
         {
           sublink: "E-Library Catalog",

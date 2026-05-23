@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useRef, useState } from "react";
 
 type BlogPost = {
   _id: string;
@@ -10,178 +9,253 @@ type BlogPost = {
   description: string;
   content: string;
   images: string[];
+  date?: string; // ✅ MATCH YOUR ROUTE
   createdAt?: string;
 };
 
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   // FORM STATE
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
-  const [images, setImages] = useState<string>("");
+  const [images, setImages] = useState<FileList | null>(null);
 
   const [editId, setEditId] = useState<string | null>(null);
 
-  // FETCH POSTS
-  const fetchPosts = async () => {
-    try {
+  // =========================
+  // FETCH POSTS (SAFE)
+  // =========================
+  const fetchPosts = async (showLoading = true) => {
+  try {
+    if (showLoading) {
       setLoading(true);
-      const res = await axios.get("/api/blog");
-      setPosts(res.data || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    const res = await fetch("/api/blog");
+
+    if (!res.ok) {
+      console.error("API error:", await res.text());
+      setPosts([]);
+      return;
+    }
+
+    const data = await res.json().catch(() => []);
+
+    setPosts(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("FETCH ERROR:", error);
+    setPosts([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    const loadPosts = async () => {
-      await fetchPosts();
-    };
-
-    loadPosts();
+    void fetchPosts(false);
   }, []);
 
-  // CREATE OR UPDATE
+  // =========================
+  // SUBMIT
+  // =========================
   const handleSubmit = async () => {
     try {
-      const payload = {
-        title,
-        description,
-        content,
-        images: images.split(",").map((img) => img.trim()),
-      };
+      setUploading(true);
 
-      if (editId) {
-        await axios.put(`/api/blog/${editId}`, payload);
-      } else {
-        await axios.post("/api/blog", payload);
+      const formData = new FormData();
+
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("content", content);
+
+      if (images) {
+        Array.from(images).forEach((img) => {
+          formData.append("images", img);
+        });
       }
 
+      const url = editId
+        ? `/api/blog?id=${editId}`
+        : "/api/blog";
+
+      const method = editId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Upload failed");
+      }
+
+      // RESET FORM
       setTitle("");
       setDescription("");
       setContent("");
-      setImages("");
+      setImages(null);
       setEditId(null);
 
-      fetchPosts();
+      // IMPORTANT RESET FILE INPUT
+      if (fileRef.current) {
+        fileRef.current.value = "";
+      }
+
+      await fetchPosts(false);
     } catch (error) {
-      console.error(error);
+      console.error("SUBMIT ERROR:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
+  // =========================
   // DELETE
+  // =========================
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this post?")) return;
 
     try {
-      await axios.delete(`/api/blog/${id}`);
-      fetchPosts();
+      await fetch(`/api/blog?id=${id}`, {
+        method: "DELETE",
+      });
+
+      fetchPosts(false);
     } catch (error) {
       console.error(error);
     }
   };
 
+  // =========================
   // EDIT
+  // =========================
   const handleEdit = (post: BlogPost) => {
     setEditId(post._id);
     setTitle(post.title);
     setDescription(post.description);
     setContent(post.content);
-    setImages(post.images.join(", "));
   };
 
   return (
-    <div className="p-6 space-y-10">
+    <div className="p-6 space-y-10 max-w-6xl mx-auto">
       {/* HEADER */}
       <h1 className="text-2xl font-bold text-blue-700">
         📝 Blog Admin Panel
       </h1>
 
       {/* FORM */}
-      <div className="bg-white p-4 rounded-lg shadow space-y-3">
+      <div className="bg-white p-6 rounded-xl shadow-md space-y-4">
         <input
-          className="w-full border p-2 rounded"
-          placeholder="Title"
+          className="w-full border p-3 rounded-lg"
+          placeholder="Blog Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         <input
-          className="w-full border p-2 rounded"
-          placeholder="Description"
+          className="w-full border p-3 rounded-lg"
+          placeholder="Short Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
 
         <textarea
-          className="w-full border p-2 rounded"
-          placeholder="Content"
+          className="w-full border p-3 rounded-lg min-h-[150px]"
+          placeholder="Blog Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
 
         <input
-          className="w-full border p-2 rounded"
-          placeholder="Images (comma separated URLs)"
-          value={images}
-          onChange={(e) => setImages(e.target.value)}
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*"
+          className="w-full border p-3 rounded-lg"
+          onChange={(e) => setImages(e.target.files)}
         />
+
+        {/* PREVIEW */}
+        {images && images.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Array.from(images).map((file, i) => (
+              <div key={i} className="relative h-28 rounded-lg overflow-hidden border">
+                <Image
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         <button
           onClick={handleSubmit}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          disabled={uploading}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-3 rounded-lg"
         >
-          {editId ? "Update Post" : "Create Post"}
+          {uploading ? "Uploading..." : editId ? "Update Post" : "Create Post"}
         </button>
       </div>
 
       {/* POSTS */}
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-center text-gray-500">Loading posts...</p>
+      ) : posts.length === 0 ? (
+        <p className="text-center text-gray-400">No blog posts found</p>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post) => (
-            <div
-              key={post._id}
-              className="bg-white p-4 rounded shadow space-y-2"
-            >
-              {/* IMAGE */}
-              {post.images?.[0] && (
-                <div className="relative h-40 w-full">
-                  <Image
-                    src={post.images[0]}
-                    alt={post.title}
-                    fill
-                    className="object-cover rounded"
-                  />
+            <div key={post._id} className="bg-white rounded-xl shadow-md overflow-hidden">
+              {/* IMAGES */}
+              {post.images?.length > 0 && (
+                <div className="grid grid-cols-2 gap-1">
+                  {post.images.slice(0, 4).map((img, i) => (
+                    <div key={i} className="relative h-32">
+                      <Image src={img} alt={post.title} fill className="object-cover" />
+                    </div>
+                  ))}
                 </div>
               )}
 
-              <h2 className="text-lg font-bold">{post.title}</h2>
-              <p className="text-gray-600 text-sm">
-                {post.description}
-              </p>
+              <div className="p-4 space-y-2">
+                <h2 className="font-bold line-clamp-2">{post.title}</h2>
 
-              {/* ACTIONS */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(post)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded"
-                >
-                  Edit
-                </button>
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {post.description}
+                </p>
 
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Delete
-                </button>
+                {/* ✅ DATE FROM YOUR ROUTE */}
+                <p className="text-xs text-gray-400">
+                  {post.date
+                    ? new Date(post.date).toLocaleString()
+                    : "No date"}
+                </p>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => handleEdit(post)}
+                    className="bg-yellow-500 text-white px-3 py-2 rounded"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(post._id)}
+                    className="bg-red-500 text-white px-3 py-2 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -1,34 +1,71 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Blog from "@/models/Blog";
+import cloudinary from "@/lib/cloudinary";
 
-// GET ALL BLOG POSTS
-export async function GET() {
-  try {
-    await connectDB();
+// CLOUDINARY UPLOAD
+const uploadToCloudinary = async (file: File) => {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
 
-    const posts = await Blog.find().sort({ createdAt: -1 });
-
-    return NextResponse.json(posts, { status: 200 });
-  } catch {
-    return NextResponse.json(
-      { message: "Failed to fetch blogs" },
-      { status: 500 }
+  return new Promise<string>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "fubk-library/blogs",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result?.secure_url as string);
+      }
     );
-  }
+
+    stream.end(buffer);
+  });
+};
+
+// GET
+export async function GET() {
+  await connectDB();
+
+  const posts = await Blog.find().sort({ createdAt: -1 });
+
+  return NextResponse.json(posts);
 }
 
-// CREATE BLOG POST
-export async function POST(req: Request) {
+// POST
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const body = await req.json();
+    const formData = await req.formData();
 
-    const newPost = await Blog.create(body);
+    const title = formData.get("title")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
+    const content = formData.get("content")?.toString() || "";
+
+    const files = formData.getAll("images") as File[];
+
+    const validFiles = files.filter(
+      (file) => file instanceof File && file.size > 0
+    );
+
+    const images =
+      validFiles.length > 0
+        ? await Promise.all(validFiles.map(uploadToCloudinary))
+        : [];
+
+    const newPost = await Blog.create({
+      title,
+      description,
+      content,
+      images,
+      date: new Date().toISOString(), // ✅ FIX for your schema
+    });
 
     return NextResponse.json(newPost, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.log("POST ERROR:", error);
+
     return NextResponse.json(
       { message: "Failed to create blog post" },
       { status: 500 }
@@ -36,13 +73,12 @@ export async function POST(req: Request) {
   }
 }
 
-// UPDATE BLOG POST (EDIT)
-export async function PUT(req: Request) {
+// PUT
+export async function PUT(req: NextRequest) {
   try {
     await connectDB();
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    const id = new URL(req.url).searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
@@ -51,26 +87,41 @@ export async function PUT(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const formData = await req.formData();
 
-    const updatedPost = await Blog.findByIdAndUpdate(
-      id,
-      { $set: body },
-      { new: true, runValidators: true }
+    const title = formData.get("title")?.toString() || "";
+    const description = formData.get("description")?.toString() || "";
+    const content = formData.get("content")?.toString() || "";
+
+    const files = formData.getAll("images") as File[];
+
+    const validFiles = files.filter(
+      (file) => file instanceof File && file.size > 0
     );
 
-    if (!updatedPost) {
-      return NextResponse.json(
-        { message: "Blog not found" },
-        { status: 404 }
-      );
+    const images =
+      validFiles.length > 0
+        ? await Promise.all(validFiles.map(uploadToCloudinary))
+        : [];
+
+    const updateData: any = {
+      title,
+      description,
+      content,
+    };
+
+    if (images.length > 0) {
+      updateData.images = images;
     }
 
-    return NextResponse.json(
-      { message: "Blog updated successfully", data: updatedPost },
-      { status: 200 }
-    );
-  } catch {
+    const updated = await Blog.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.log("PUT ERROR:", error);
+
     return NextResponse.json(
       { message: "Failed to update blog" },
       { status: 500 }
@@ -78,35 +129,17 @@ export async function PUT(req: Request) {
   }
 }
 
-// DELETE BLOG POST
-export async function DELETE(req: Request) {
+// DELETE
+export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    const id = new URL(req.url).searchParams.get("id");
 
-    if (!id) {
-      return NextResponse.json(
-        { message: "Blog ID is required" },
-        { status: 400 }
-      );
-    }
+    await Blog.findByIdAndDelete(id);
 
-    const deleted = await Blog.findByIdAndDelete(id);
-
-    if (!deleted) {
-      return NextResponse.json(
-        { message: "Blog not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Blog deleted successfully" },
-      { status: 200 }
-    );
-  } catch {
+    return NextResponse.json({ message: "Deleted successfully" });
+  } catch (error) {
     return NextResponse.json(
       { message: "Failed to delete blog" },
       { status: 500 }

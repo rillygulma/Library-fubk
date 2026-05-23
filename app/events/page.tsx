@@ -10,6 +10,7 @@ type BlogPost = {
   description: string;
   content: string;
   images: string[];
+  date?: string; // ✅ matches your backend
   createdAt?: string;
 };
 
@@ -21,20 +22,32 @@ const BlogPosts = () => {
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [searchTitle, setSearchTitle] = useState("");
 
-  // Fetch from backend
+  // =========================
+  // FETCH POSTS (SAFE)
+  // =========================
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
+        setError(null);
 
         const res = await fetch("/api/blog");
-        if (!res.ok) throw new Error("Failed to fetch blog posts");
 
-        const data: BlogPost[] = await res.json();
-        setPosts(data);
+        // ❌ handle backend failure safely
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(text || "Failed to fetch blog posts");
+        }
+
+        const data = await res.json().catch(() => []);
+
+        setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Something went wrong";
-        setError(errorMessage);
+        const message =
+          err instanceof Error ? err.message : "Something went wrong";
+
+        setError(message);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
@@ -44,13 +57,16 @@ const BlogPosts = () => {
   }, []);
 
   const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchTitle.toLowerCase())
+    post.title.toLowerCase().includes(searchTitle.toLowerCase()),
   );
 
   const togglePost = (id: string) => {
-    setActivePostId(activePostId === id ? null : id);
+    setActivePostId((prev) => (prev === id ? null : id));
   };
 
+  // =========================
+  // LOADING UI
+  // =========================
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -59,6 +75,9 @@ const BlogPosts = () => {
     );
   }
 
+  // =========================
+  // ERROR UI
+  // =========================
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-500">
@@ -68,15 +87,15 @@ const BlogPosts = () => {
   }
 
   return (
-    <div className="bg-gray-100 mt-40 min-h-screen p-4 sm:p-6 md:p-8">
-      {/* Search */}
+    <div className="min-h-screen p-4 sm:p-6 md:p-8">
+      {/* SEARCH */}
       <div className="flex mb-6 justify-center">
         <input
           type="text"
           placeholder="Search by title"
           value={searchTitle}
           onChange={(e) => setSearchTitle(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md w-full sm:w-1/2 lg:w-1/3"
+          className="bg-white px-4 py-2 border border-gray-300 rounded-md w-full sm:w-1/2 lg:w-1/3"
         />
       </div>
 
@@ -84,38 +103,45 @@ const BlogPosts = () => {
         Event & Gallery Posts
       </h2>
 
-      {/* Posts Grid */}
+      {/* POSTS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
             <div
               key={post._id}
-              className="bg-white rounded-md shadow-lg p-4 hover:shadow-xl transition"
+              className="rounded-md shadow-lg p-4 hover:shadow-xl transition"
             >
-              {/* Carousel */}
-              <div className="relative h-56 sm:h-64 xl:h-80 mb-4">
-                <Carousel>
-                  {post.images?.map((img, index) => (
-                    <Image
-                      key={index}
-                      src={img}
-                      alt={post.title}
-                      fill
-                      unoptimized
-                      className="object-cover w-full h-full rounded-md"
-                    />
-                  ))}
-                </Carousel>
-              </div>
+              {/* CAROUSEL */}
+              {post.images?.length > 0 && (
+                <div className="relative h-56 sm:h-64 xl:h-80 mb-4">
+                  <Carousel>
+                    {post.images.map((img, index) => (
+                      <div key={index} className="relative w-full h-full">
+                        <Image
+                          src={img}
+                          alt={post.title}
+                          fill
+                          className="object-contain bg-black"
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </Carousel>
+                </div>
+              )}
 
-              {/* Content */}
+              {/* CONTENT */}
               <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
+
               <p className="text-gray-700 mb-2">{post.description}</p>
 
+              {/* DATE (matches your route field) */}
               <p className="text-gray-500 text-sm mb-3">
-                {post.createdAt
-                  ? new Date(post.createdAt).toLocaleDateString()
-                  : ""}
+                {post.date
+                  ? new Date(post.date).toLocaleDateString()
+                  : post.createdAt
+                    ? new Date(post.createdAt).toLocaleDateString()
+                    : ""}
               </p>
 
               <button
@@ -126,9 +152,7 @@ const BlogPosts = () => {
               </button>
 
               {activePostId === post._id && (
-                <div className="mt-3 text-gray-800">
-                  {post.content}
-                </div>
+                <div className="mt-3 text-gray-800">{post.content}</div>
               )}
             </div>
           ))
