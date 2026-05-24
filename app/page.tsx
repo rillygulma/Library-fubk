@@ -48,33 +48,33 @@ const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  
+
   useEffect(() => {
-  const fetchAnnouncement = async () => {
-    try {
-      const res = await fetch("/api/announcements");
+    const fetchAnnouncement = async () => {
+      try {
+        const res = await fetch("/api/announcements");
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("API ERROR:", text);
-        return;
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("API ERROR:", text);
+          return;
+        }
+
+        const result = await res.json();
+
+        const announcements = result?.data;
+
+        if (Array.isArray(announcements) && announcements.length > 0) {
+          setAnnouncement(announcements[0]);
+          setShowPopup(true);
+        }
+      } catch (error) {
+        console.error("Failed to fetch announcement:", error);
       }
+    };
 
-      const result = await res.json();
-
-      const announcements = result?.data;
-
-      if (Array.isArray(announcements) && announcements.length > 0) {
-        setAnnouncement(announcements[0]);
-        setShowPopup(true);
-      }
-    } catch (error) {
-      console.error("Failed to fetch announcement:", error);
-    }
-  };
-
-  fetchAnnouncement();
-}, []);
+    fetchAnnouncement();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -315,6 +315,7 @@ const HomePage = () => {
       </header>
 
       {/* HERO SECTION */}
+      {/* HERO SECTION */}
       <section className="relative flex min-h-screen items-center overflow-hidden bg-teal-100 px-4 sm:px-6 lg:px-24">
         {/* Popup */}
         {showPopup && announcement && (
@@ -339,7 +340,7 @@ const HomePage = () => {
         )}
 
         <div className="flex w-full flex-col items-center justify-between gap-16 py-32 md:flex-row">
-          {/* Left */}
+          {/* LEFT SIDE (UPDATED ONLY) */}
           <div className="space-y-8 md:w-1/2">
             <h1 className="text-4xl font-bold uppercase leading-tight text-blue-600 md:text-5xl">
               {text}
@@ -351,16 +352,74 @@ const HomePage = () => {
               learning, and research.
             </p>
 
+            {/* SEARCH BAR */}
+            <div className="flex w-full max-w-lg items-center overflow-hidden rounded-lg bg-white shadow-md">
+              <input
+                type="text"
+                placeholder="Search books, authors, journals..."
+                className="w-full px-4 py-3 outline-none"
+              />
+              <button className="bg-blue-600 px-5 py-3 text-white hover:bg-blue-700">
+                Search
+              </button>
+            </div>
+
+            {/* SUGGESTIONS */}
+            <p className="text-sm text-gray-500">
+              Try: “Physics textbooks”, “Law journals”, “Computer Science”
+            </p>
+
+            {/* MAIN BUTTON */}
             <Link href="/welcomeNote">
               <button className="rounded-lg bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700">
                 Read the University Librarian Welcome Note
               </button>
             </Link>
 
-            
+            {/* AI LIBRARIAN BUTTON */}
+            <Link href="/ai-chatbot">
+              <button className="rounded-lg border border-blue-600 ml-5 px-5 py-3 text-blue-600 transition hover:bg-blue-600 hover:text-white">
+                Ask AI Librarian 🤖
+              </button>
+            </Link>
+
+            {/* STATS */}
+            <div className="mt-6 flex gap-6 text-sm text-gray-700">
+              <div>
+                <p className="text-xl font-bold text-blue-600">10K+</p>
+                Books
+              </div>
+
+              <div>
+                <p className="text-xl font-bold text-blue-600">2K+</p>
+                Students
+              </div>
+
+              <div>
+                <p className="text-xl font-bold text-blue-600">500+</p>
+                Journals
+              </div>
+            </div>
+
+            {/* QUICK ACTION CARDS */}
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3">
+              {[
+                { title: "Browse Library", link: "/e-library/databases" },
+                { title: "Membership", link: "/library-Membership" },
+                { title: "Departments", link: "/branches" },
+              ].map((item) => (
+                <Link
+                  key={item.title}
+                  href={item.link}
+                  className="rounded-lg bg-white p-3 text-center shadow hover:bg-blue-50"
+                >
+                  {item.title}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Right */}
+          {/* RIGHT SIDE (UNCHANGED) */}
           <div className="flex flex-col items-center">
             <div className="w-[300px]">
               <Swiper
@@ -370,20 +429,24 @@ const HomePage = () => {
                 className="mySwiper"
               >
                 {[
-                  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
-                  "https://images.unsplash.com/photo-1512820790803-83ca734da794",
-                  "https://images.unsplash.com/photo-1495446815901-a7297e633e8d",
-                  "https://images.unsplash.com/photo-1516979187457-637abb4f9353",
-                  "https://images.unsplash.com/photo-1521587760476-6c12a4b040da",
-                  "https://images.unsplash.com/photo-1507842217343-583bb7270b66",
+                  "/images/banner-books/Book1.jpg",
+                  "/images/banner-books/Book2.jpg",
+                  "/images/banner-books/Book3.jpg",
+                  "/images/banner-books/Book4.jpg",
+                  "/images/banner-books/Book5.jpg",
+                  "/images/banner-books/Book6.jpg",
+                  "/images/banner-books/Book7.jpg",
+                  "/images/banner-books/Book8.jpg",
                 ].map((img, index) => (
                   <SwiperSlide key={index}>
-                    <Image
-                      src={img}
-                      alt="Book"
-                      className="h-full w-full rounded-2xl object-cover"
-                      fill
-                    />
+                    <div className="relative h-[400px] w-full overflow-hidden rounded-2xl">
+                      <Image
+                        src={img}
+                        alt="Book"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -394,23 +457,6 @@ const HomePage = () => {
             </h2>
           </div>
         </div>
-
-        {/* Swiper Styling */}
-        <style jsx global>{`
-          .mySwiper {
-            width: 300px;
-            height: 400px;
-          }
-
-          .swiper-slide {
-            border-radius: 20px;
-            overflow: hidden;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-        `}</style>
       </section>
       <Footer />
     </>
