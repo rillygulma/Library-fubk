@@ -48,9 +48,9 @@ export default function LoginPage() {
 
       // ================= ROLE ROUTING =================
       if (user.role === "admin") {
-        router.push("/admin");
+        router.push("/admin-dashboard");
       } else if (user.role === "librarian") {
-        router.push("/librarian");
+        router.push("/librarian-dashboard");
       } else if (user.role === "staff") {
         router.push("/dashboard");
       } else {

@@ -5,7 +5,6 @@ import {
   Users,
   BookOpen,
   FileText,
-  Settings,
   Bell,
   Search,
   Menu,
@@ -16,11 +15,13 @@ import {
   Trash2,
   Megaphone,
   LogOut,
+  MessageCircle,
 } from "lucide-react";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const stats = [
   {
@@ -49,17 +50,104 @@ const stats = [
   },
 ];
 
+type User = {
+  _id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  profilePicture?: string;
+};
+
+type ContactMessage = {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
+};
+
 export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ================= USERS FROM API =================
-  const [users, setUsers] = useState<any[]>([]);
+  const router = useRouter();
 
+  const [users, setUsers] = useState<User[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
+
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    role: "",
+    profilePicture: "",
+  });
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture || "",
+    });
+  };
+
+  const updateUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      const res = await fetch(`/api/users/${editingUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+
+      const data = await res.json();
+
+      setUsers((prev) =>
+        prev.map((u) => (u._id === editingUser._id ? data.user : u)),
+      );
+
+      setEditingUser(null);
+    } catch (error) {
+      console.log(error);
+      alert("Failed to update user");
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteUser) return;
+
+    try {
+      const res = await fetch(`/api/users/${deleteUser._id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      setUsers((prev) => prev.filter((u) => u._id !== deleteUser._id));
+
+      setDeleteUser(null);
+    } catch (error) {
+      console.log(error);
+      alert("Failed to delete user");
+    }
+  };
+
+  // ================= FETCH USERS ================= //
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users");
         const data = await res.json();
+
         setUsers(data.users || []);
       } catch (error) {
         console.log(error);
@@ -68,6 +156,78 @@ export default function AdminDashboard() {
 
     fetchUsers();
   }, []);
+
+  // ================= CONTACT API =================
+  useEffect(() => {
+    const fetchContactMessages = async () => {
+      try {
+        const res = await fetch("/api/contact");
+        const data = await res.json();
+
+        // ✅ FIXED HERE
+        setContactMessages(data.data || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchContactMessages();
+  }, []);
+
+  const editUser = async (user: User) => {
+    const newName = prompt("Enter full name", user.fullName);
+    const newEmail = prompt("Enter email", user.email);
+    const newRole = prompt("Enter role", user.role);
+
+    if (!newName || !newEmail || !newRole) return;
+
+    try {
+      const res = await fetch(`/api/users/${user._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: newName,
+          email: newEmail,
+          role: newRole,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+
+      const updated = await res.json();
+
+      // update UI instantly
+      setUsers((prev) =>
+        prev.map((u) => (u._id === user._id ? updated.user : u)),
+      );
+    } catch (error) {
+      console.log(error);
+      alert("Failed to update user");
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  // ================= LOGOUT =================
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+      });
+
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -96,12 +256,8 @@ export default function AdminDashboard() {
             />
 
             <div>
-              <h1 className="text-2xl font-bold text-blue-700">
-                FUBK Admin
-              </h1>
-              <p className="text-sm text-gray-500">
-                Management Dashboard
-              </p>
+              <h1 className="text-2xl font-bold text-blue-700">FUBK Admin</h1>
+              <p className="text-sm text-gray-500">Management Dashboard</p>
             </div>
           </div>
 
@@ -128,8 +284,11 @@ export default function AdminDashboard() {
               path: "/admin/announcements",
             },
             { icon: FileText, label: "Blog Posts", path: "/admin/blog" },
-            { icon: Settings, label: "Settings", path: "" },
-            { icon: LogOut, label: "Logout", path: "/api/authlogout" },
+            {
+              icon: MessageCircle,
+              label: "Contact Us Message",
+              path: "/admin/contact-messages",
+            },
           ].map((item, index) => (
             <Link
               key={index}
@@ -140,11 +299,36 @@ export default function AdminDashboard() {
                   : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <div className="relative">
+                <item.icon className="h-5 w-5" />
+
+                {item.label === "Contact Us Message" &&
+                  contactMessages.length > 0 && (
+                    <>
+                      <span className="absolute -right-2 -top-2 flex h-5 w-5 animate-ping rounded-full bg-red-500"></span>
+
+                      <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                        {contactMessages.length}
+                      </span>
+                    </>
+                  )}
+              </div>
+
               <span className="font-medium">{item.label}</span>
             </Link>
           ))}
         </nav>
+
+        {/* Logout */}
+        <div className="px-4 pb-4">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left text-gray-700 transition-all duration-300 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
 
         {/* Bottom Card */}
         <div className="p-4">
@@ -243,7 +427,7 @@ export default function AdminDashboard() {
             ))}
           </section>
 
-          {/* USERS TABLE (UPDATED ONLY DATA SOURCE) */}
+          {/* USERS TABLE */}
           <section className="mt-8 rounded-3xl bg-white p-6 shadow-md">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -255,9 +439,26 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              <button className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-                Add New User
-              </button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex items-center rounded-2xl border bg-gray-50 px-4 py-3">
+                  <Search className="h-4 w-4 text-gray-500" />
+
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="ml-2 bg-transparent text-sm outline-none"
+                  />
+                </div>
+
+                <Link
+                  href="/register"
+                  className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Add New User
+                </Link>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -277,15 +478,27 @@ export default function AdminDashboard() {
                 </thead>
 
                 <tbody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr
                       key={user._id}
                       className="border-b last:border-none hover:bg-gray-50"
                     >
                       <td className="py-5">
                         <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-                            {user.fullName?.charAt(0)}
+                          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-blue-600 text-white">
+                            {user.profilePicture ? (
+                              <Image
+                                src={user.profilePicture}
+                                alt={user.fullName}
+                                width={48}
+                                height={48}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="font-semibold">
+                                {user.fullName?.charAt(0)}
+                              </span>
+                            )}
                           </div>
 
                           <div>
@@ -299,9 +512,7 @@ export default function AdminDashboard() {
                         </div>
                       </td>
 
-                      <td className="py-5 text-gray-700">
-                        {user.role}
-                      </td>
+                      <td className="py-5 text-gray-700">{user.role}</td>
 
                       <td className="py-5">
                         <div className="flex items-center gap-3">
@@ -309,23 +520,198 @@ export default function AdminDashboard() {
                             <Eye className="h-4 w-4" />
                           </button>
 
-                          <button className="rounded-xl bg-green-100 p-3 text-green-700">
+                          <button
+                            onClick={() => openEditModal(user)}
+                            className="rounded-xl bg-green-100 p-3 text-green-700"
+                          >
                             <Pencil className="h-4 w-4" />
                           </button>
 
-                          <button className="rounded-xl bg-red-100 p-3 text-red-700">
+                          <button
+                            onClick={() => setDeleteUser(user)}
+                            className="rounded-xl bg-red-100 p-3 text-red-700"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-10 text-center text-gray-500"
+                      >
+                        No users found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </section>
         </div>
       </main>
+      {/* ================= EDIT USER MODAL ================= */}
+      {editingUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Edit User</h2>
+
+                <p className="text-sm text-gray-500">Update user information</p>
+              </div>
+
+              <button
+                onClick={() => setEditingUser(null)}
+                className="rounded-xl p-2 hover:bg-gray-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Full Name
+                </label>
+
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      fullName: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Email
+                </label>
+
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Role
+                </label>
+
+                <select
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      role: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                >
+                  <option value="Admin">Admin</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Student">Student</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  Profile Picture URL
+                </label>
+
+                <input
+                  type="text"
+                  value={formData.profilePicture}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      profilePicture: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 flex items-center justify-end gap-4">
+              <button
+                onClick={() => setEditingUser(null)}
+                className="rounded-2xl border border-gray-300 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={updateUser}
+                className="rounded-2xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= DELETE MODAL ================= */}
+      {deleteUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-red-100 p-4 text-red-600">
+                <Trash2 className="h-8 w-8" />
+              </div>
+            </div>
+
+            <div className="mt-5 text-center">
+              <h2 className="text-2xl font-bold text-gray-800">Delete User</h2>
+
+              <p className="mt-3 text-gray-500">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-gray-800">
+                  {deleteUser.fullName}
+                </span>
+                ?
+              </p>
+
+              <p className="mt-1 text-sm text-red-500">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="mt-8 flex items-center gap-4">
+              <button
+                onClick={() => setDeleteUser(null)}
+                className="flex-1 rounded-2xl border border-gray-300 px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDeleteUser}
+                className="flex-1 rounded-2xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

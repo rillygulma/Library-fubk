@@ -5,11 +5,9 @@ import {
   BookOpen,
   Settings,
   Bell,
-  Search,
   Menu,
   X,
   Activity,
-  User,
   Bookmark,
   ClipboardList,
   LogOut,
@@ -18,17 +16,42 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+type User = {
+  fullName?: string;
+  role?: string;
+};
 
 export default function UserDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
+    if (typeof window === "undefined") return;
+
+    const stored = window.localStorage.getItem("user");
+
+    if (!stored) return;
+
+    try {
+      const parsed = JSON.parse(stored);
+
+      requestAnimationFrame(() => {
+        setUser(parsed);
+      });
+    } catch (err) {
+      console.log("Invalid user data:", err);
+      window.localStorage.removeItem("user");
+    }
   }, []);
 
-  // SAME STYLE STATS AS ADMIN (but user-focused)
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
+
   const stats = [
     {
       title: "Books Borrowed",
@@ -58,7 +81,6 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -66,7 +88,7 @@ export default function UserDashboard() {
         />
       )}
 
-      {/* SIDEBAR (same design as admin) */}
+      {/* SIDEBAR */}
       <aside
         className={`fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-white shadow-2xl transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -83,12 +105,8 @@ export default function UserDashboard() {
             />
 
             <div>
-              <h1 className="text-2xl font-bold text-blue-700">
-                FUBK Library
-              </h1>
-              <p className="text-sm text-gray-500">
-                Student / Staff Portal
-              </p>
+              <h1 className="text-2xl font-bold text-blue-700">FUBK Library</h1>
+              <p className="text-sm text-gray-500">Library Dashboard</p>
             </div>
           </div>
 
@@ -97,8 +115,8 @@ export default function UserDashboard() {
           </button>
         </div>
 
-        {/* NAVIGATION (ADMIN ITEMS REMOVED, USER ITEMS ADDED) */}
-        <nav className="flex-1 space-y-2 p-4">
+        {/* NAVIGATION */}
+        <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
           {[
             {
               icon: LayoutDashboard,
@@ -107,8 +125,8 @@ export default function UserDashboard() {
             },
             {
               icon: BookOpen,
-              label: "E-Library",
-              path: "/library",
+              label: "Fubk AI",
+              path: "/research-ai",
             },
             {
               icon: ClipboardList,
@@ -116,29 +134,14 @@ export default function UserDashboard() {
               path: "/borrowed",
             },
             {
-              icon: Bookmark,
-              label: "Saved Books",
-              path: "/saved",
-            },
-            {
               icon: Bell,
               label: "Announcements",
-              path: "/announcements",
-            },
-            {
-              icon: User,
-              label: "Profile",
-              path: "/profile",
+              path: "/",
             },
             {
               icon: Settings,
-              label: "Settings",
-              path: "/settings",
-            },
-            {
-              icon: LogOut,
-              label: "Logout",
-              path: "/api/auth/logout",
+              label: "Library Rules",
+              path: "/",
             },
           ].map((item, i) => (
             <Link
@@ -150,24 +153,34 @@ export default function UserDashboard() {
               {item.label}
             </Link>
           ))}
+
+          {/* LOGOUT BUTTON */}
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left text-gray-700 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogOut className="h-5 w-5" />
+            Logout
+          </button>
         </nav>
 
-        {/* USER CARD */}
+        {/* Bottom Card */}
         <div className="p-4">
           <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl">
-            <h2 className="text-lg font-semibold">
-              {user?.fullName || "User"}
-            </h2>
-            <p className="text-sm text-blue-100">
-              {user?.role || "Student/Staff"}
+            <h2 className="text-lg font-semibold">Need Help?</h2>
+            <p className="mt-2 text-sm text-blue-100">
+              Contact the ICT department for technical assistance.
             </p>
+
+            <button className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+              Contact Support
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* MAIN CONTENT (SAME ADMIN STRUCTURE) */}
+      {/* MAIN */}
       <main className="lg:ml-72">
-        {/* HEADER */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
@@ -188,20 +201,6 @@ export default function UserDashboard() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-5">
-            <div className="hidden items-center rounded-2xl border bg-gray-50 px-4 py-2 md:flex">
-              <Search className="h-4 w-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search books..."
-                className="ml-2 bg-transparent text-sm outline-none"
-              />
-            </div>
-
-            <button className="relative rounded-xl bg-gray-100 p-3 hover:bg-gray-200">
-              <Bell className="h-5 w-5 text-gray-700" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
-
             <div className="flex items-center gap-3 rounded-2xl bg-gray-100 px-3 py-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
                 {user?.fullName?.charAt(0) || "U"}
@@ -223,52 +222,48 @@ export default function UserDashboard() {
         <div className="p-4 sm:p-6 lg:p-8">
           <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat, i) => (
-              <div
-                key={i}
-                className="rounded-3xl bg-white p-6 shadow-md transition hover:-translate-y-1 hover:shadow-2xl"
-              >
+              <div key={i} className="rounded-3xl bg-white p-6 shadow-md">
                 <div className="flex justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">
-                      {stat.title}
-                    </p>
-                    <h3 className="text-3xl font-bold">
-                      {stat.value}
-                    </h3>
+                    <p className="text-sm text-gray-500">{stat.title}</p>
+                    <h3 className="text-3xl font-bold">{stat.value}</h3>
                   </div>
 
                   <stat.icon className="h-6 w-6 text-blue-600" />
                 </div>
 
-                <p className="mt-4 text-sm text-green-600">
-                  {stat.growth}
-                </p>
+                <p className="mt-4 text-sm text-green-600">{stat.growth}</p>
               </div>
             ))}
           </section>
 
-          {/* QUICK ACTIONS (USER VERSION OF ADMIN CARDS) */}
+          {/* QUICK ACTIONS */}
           <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="rounded-3xl bg-white p-6 shadow-md">
+            {/* Browse E-Library */}
+            <Link
+              href="/e-library"
+              className="rounded-3xl bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+            >
               <h3 className="text-lg font-bold">Browse E-Library</h3>
-              <p className="text-sm text-gray-500">
-                Access academic resources
-              </p>
-            </div>
+              <p className="text-sm text-gray-500">Access academic resources</p>
+            </Link>
 
-            <div className="rounded-3xl bg-white p-6 shadow-md">
+            {/* Borrow Books */}
+            <div className="rounded-3xl bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer">
               <h3 className="text-lg font-bold">Borrow Books</h3>
-              <p className="text-sm text-gray-500">
-                Request or return books
-              </p>
+              <p className="text-sm text-gray-500">Request or return books</p>
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-md">
+            {/* Library Rules */}
+            <Link
+              href="/help"
+              className="rounded-3xl bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+            >
               <h3 className="text-lg font-bold">Library Rules</h3>
               <p className="text-sm text-gray-500">
                 Read guidelines & policies
               </p>
-            </div>
+            </Link>
           </section>
         </div>
       </main>
