@@ -1,16 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken } from "@/lib/jwt";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
     const { email, password } = await req.json();
 
+    // ================= VALIDATION =================
     if (!email || !password) {
       return NextResponse.json(
         {
@@ -21,9 +22,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await User.findOne({ email });
+    const trimmedEmail = email.trim().toLowerCase();
 
-    if (!user) {
+    const user = await User.findOne({ email: trimmedEmail });
+
+    if (!user || !user.password) {
       return NextResponse.json(
         {
           success: false,
@@ -33,10 +36,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return NextResponse.json(
@@ -49,9 +49,8 @@ export async function POST(req: Request) {
     }
 
     // ================= JWT TOKEN =================
-
     const token = signToken({
-      id: user._id,
+      id: user._id.toString(),
       role: user.role,
       email: user.email,
     });
@@ -60,7 +59,6 @@ export async function POST(req: Request) {
       {
         success: true,
         message: "Login successful",
-
         user: {
           id: user._id,
           fullName: user.fullName,
@@ -72,8 +70,7 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
-    // ================= SAVE COOKIE =================
-
+    // ================= COOKIE =================
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -82,8 +79,8 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
-    console.log(error);
+  } catch (error: unknown) {
+    console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
       {

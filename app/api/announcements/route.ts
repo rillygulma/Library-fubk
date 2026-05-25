@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Announcement from "@/models/Announcement";
 
-// CREATE announcement
-export async function POST(req: Request) {
+// ================= CREATE announcement =================
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     if (!title || !message) {
       return NextResponse.json(
         { error: "Title and message are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,18 +28,17 @@ export async function POST(req: Request) {
         success: true,
         data: announcement,
       },
-      { status: 201 }
+      { status: 201 },
     );
-  } catch (error) {
-    console.error(error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to create announcement" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// GET all announcements
+// ================= GET all announcements =================
 export async function GET() {
   try {
     await connectDB();
@@ -52,27 +51,25 @@ export async function GET() {
       success: true,
       data: announcements,
     });
-  } catch (error) {
-    console.error(error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch announcements" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// DELETE announcement by ID
-export async function DELETE(req: Request) {
+// ================= DELETE announcement =================
+export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
         { error: "Announcement ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,7 +78,7 @@ export async function DELETE(req: Request) {
     if (!deleted) {
       return NextResponse.json(
         { error: "Announcement not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -89,11 +86,10 @@ export async function DELETE(req: Request) {
       success: true,
       message: "Announcement deleted successfully",
     });
-  } catch (error) {
-    console.error(error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete announcement" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

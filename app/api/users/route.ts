@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { connectDB } from "@/lib/mongodb";
@@ -6,7 +6,6 @@ import User from "@/models/User";
 import cloudinary from "@/lib/cloudinary";
 
 // ================= GET ALL USERS =================
-
 export async function GET() {
   try {
     await connectDB();
@@ -23,13 +22,11 @@ export async function GET() {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.log(error);
-
+  } catch  {
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to fetch users",
+        error: "Failed to fetch users",
       },
       { status: 500 }
     );
@@ -37,8 +34,7 @@ export async function GET() {
 }
 
 // ================= CREATE USER =================
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
@@ -54,15 +50,17 @@ export async function POST(req: Request) {
       faculty,
       phoneNo,
       role,
-      gender, 
+      gender,
       profilePicture,
     } = body;
 
-    // ================= VALIDATIONS =================
+    // ================= NORMALIZE =================
+    const normalizedEmail = email?.trim().toLowerCase();
 
+    // ================= VALIDATIONS =================
     if (
       !fullName ||
-      !email ||
+      !normalizedEmail ||
       !password ||
       !role ||
       !gender
@@ -70,14 +68,11 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Please fill all required fields",
+          message: "Please fill all required fields",
         },
         { status: 400 }
       );
     }
-
-    // ✅ GENDER VALIDATION
 
     if (!["male", "female"].includes(gender)) {
       return NextResponse.json(
@@ -93,8 +88,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Admission number is required for students",
+          message: "Admission number is required for students",
         },
         { status: 400 }
       );
@@ -113,10 +107,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // ================= CHECK USER =================
-
+    // ================= CHECK EXISTING USER =================
     const existingUser = await User.findOne({
-      email,
+      email: normalizedEmail,
     });
 
     if (existingUser) {
@@ -130,53 +123,36 @@ export async function POST(req: Request) {
     }
 
     // ================= HASH PASSWORD =================
-
-    const hashedPassword = await bcrypt.hash(
-      password,
-      10
-    );
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // ================= CLOUDINARY UPLOAD =================
-
     let imageUrl = "";
 
     if (profilePicture) {
-      const uploadRes =
-        await cloudinary.uploader.upload(
-          profilePicture,
-          {
-            folder: "library-users",
-          }
-        );
+      const uploadRes = await cloudinary.uploader.upload(
+        profilePicture,
+        {
+          folder: "library-users",
+        }
+      );
 
       imageUrl = uploadRes.secure_url;
     }
 
     // ================= CREATE USER =================
-
     const user = await User.create({
       fullName,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role,
-      gender, 
-
-      admissionNo:
-        role === "student"
-          ? admissionNo
-          : "",
-
-      staffNo:
-        ["staff", "librarian", "admin"].includes(
-          role
-        )
-          ? staffNo
-          : "",
-
+      gender,
+      admissionNo: role === "student" ? admissionNo : "",
+      staffNo: ["staff", "librarian", "admin"].includes(role)
+        ? staffNo
+        : "",
       department,
       faculty,
       phoneNo,
-
       profilePicture: imageUrl,
     });
 
@@ -188,13 +164,11 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.log(error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,
-        message: "Server Error",
+        error: "Server Error",
       },
       { status: 500 }
     );

@@ -239,7 +239,7 @@ const HomePage = () => {
                 ))}
 
                 <Link
-                  href="/admin/dashboard"
+                  href="/login"
                   className="rounded-lg bg-white mr-2 px-4 py-2 text-sm font-semibold uppercase text-blue-700 transition hover:bg-black hover:text-white"
                 >
                   Login
@@ -303,7 +303,7 @@ const HomePage = () => {
                 ))}
 
                 <Link
-                  href="/admin/dashboard"
+                  href="/login"
                   className="inline-block rounded-lg bg-white px-4 py-2 font-semibold text-blue-700"
                 >
                   Login

@@ -3,8 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import Blog from "@/models/Blog";
 import cloudinary from "@/lib/cloudinary";
 
-// CLOUDINARY UPLOAD
-const uploadToCloudinary = async (file: File) => {
+// ================= CLOUDINARY UPLOAD =================
+const uploadToCloudinary = async (file: File): Promise<string> => {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -13,9 +13,9 @@ const uploadToCloudinary = async (file: File) => {
       {
         folder: "fubk-library/blogs",
       },
-      (error, result) => {
+      (error: unknown, result) => {
         if (error) return reject(error);
-        resolve(result?.secure_url as string);
+        resolve(result?.secure_url || "");
       }
     );
 
@@ -23,16 +23,23 @@ const uploadToCloudinary = async (file: File) => {
   });
 };
 
-// GET
+// ================= GET ALL POSTS =================
 export async function GET() {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const posts = await Blog.find().sort({ createdAt: -1 });
+    const posts = await Blog.find().sort({ createdAt: -1 });
 
-  return NextResponse.json(posts);
+    return NextResponse.json(posts);
+  } catch  {
+    return NextResponse.json(
+      { error: "Failed to fetch blog posts" },
+      { status: 500 }
+    );
+  }
 }
 
-// POST
+// ================= CREATE POST =================
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -46,7 +53,7 @@ export async function POST(req: NextRequest) {
     const files = formData.getAll("images") as File[];
 
     const validFiles = files.filter(
-      (file) => file instanceof File && file.size > 0
+      (file): file is File => file instanceof File && file.size > 0
     );
 
     const images =
@@ -59,30 +66,28 @@ export async function POST(req: NextRequest) {
       description,
       content,
       images,
-      date: new Date().toISOString(), // ✅ FIX for your schema
+      date: new Date().toISOString(),
     });
 
     return NextResponse.json(newPost, { status: 201 });
-  } catch (error) {
-    console.log("POST ERROR:", error);
-
+  } catch  {
     return NextResponse.json(
-      { message: "Failed to create blog post" },
+      { error: "Failed to create blog post" },
       { status: 500 }
     );
   }
 }
 
-// PUT
+// ================= UPDATE POST =================
 export async function PUT(req: NextRequest) {
   try {
     await connectDB();
 
-    const id = new URL(req.url).searchParams.get("id");
+    const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
-        { message: "Blog ID is required" },
+        { error: "Blog ID is required" },
         { status: 400 }
       );
     }
@@ -96,7 +101,7 @@ export async function PUT(req: NextRequest) {
     const files = formData.getAll("images") as File[];
 
     const validFiles = files.filter(
-      (file) => file instanceof File && file.size > 0
+      (file): file is File => file instanceof File && file.size > 0
     );
 
     const images =
@@ -104,7 +109,12 @@ export async function PUT(req: NextRequest) {
         ? await Promise.all(validFiles.map(uploadToCloudinary))
         : [];
 
-    const updateData: any = {
+    const updateData: {
+      title: string;
+      description: string;
+      content: string;
+      images?: string[];
+    } = {
       title,
       description,
       content,
@@ -119,29 +129,34 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
-    console.log("PUT ERROR:", error);
-
+  } catch  {
     return NextResponse.json(
-      { message: "Failed to update blog" },
+      { error: "Failed to update blog" },
       { status: 500 }
     );
   }
 }
 
-// DELETE
+// ================= DELETE POST =================
 export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
 
-    const id = new URL(req.url).searchParams.get("id");
+    const id = req.nextUrl.searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Blog ID is required" },
+        { status: 400 }
+      );
+    }
 
     await Blog.findByIdAndDelete(id);
 
-    return NextResponse.json({ message: "Deleted successfully" });
-  } catch (error) {
+    return NextResponse.json({ error: "Deleted successfully" });
+  } catch  {
     return NextResponse.json(
-      { message: "Failed to delete blog" },
+      { error: "Failed to delete blog" },
       { status: 500 }
     );
   }

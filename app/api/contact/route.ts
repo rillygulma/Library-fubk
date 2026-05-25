@@ -1,18 +1,19 @@
-import { NextResponse } from "next/server";
-
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Contact from "@/models/Contact";
 
 // ==============================
 // CREATE CONTACT MESSAGE
 // ==============================
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
     const body = await req.json();
 
-    const { name, email, message } = body;
+    const name = body.name?.trim();
+    const email = body.email?.trim().toLowerCase();
+    const message = body.message?.trim();
 
     if (!name || !email || !message) {
       return NextResponse.json(
@@ -20,9 +21,7 @@ export async function POST(req: Request) {
           success: false,
           message: "All fields are required",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
@@ -38,21 +37,15 @@ export async function POST(req: Request) {
         message: "Message sent successfully",
         data: newContact,
       },
-      {
-        status: 201,
-      }
+      { status: 201 }
     );
-  } catch (error) {
-    console.log(error);
-
+  } catch  {
     return NextResponse.json(
       {
         success: false,
-        message: "Server Error",
+        error: "Server Error",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
@@ -64,9 +57,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    const contacts = await Contact.find().sort({
-      createdAt: -1,
-    });
+    const contacts = await Contact.find().sort({ createdAt: -1 });
 
     return NextResponse.json(
       {
@@ -74,21 +65,15 @@ export async function GET() {
         count: contacts.length,
         data: contacts,
       },
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
-  } catch (error) {
-    console.log(error);
-
+  } catch  {
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to fetch messages",
+        error: "Failed to fetch messages",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
@@ -96,23 +81,19 @@ export async function GET() {
 // ==============================
 // DELETE CONTACT MESSAGE
 // ==============================
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
 
-    const { searchParams } = new URL(req.url);
-
-    const id = searchParams.get("id");
+    const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
         {
           success: false,
-          message: "Message ID is required",
+          error: "Message ID is required",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
@@ -122,11 +103,9 @@ export async function DELETE(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Message not found",
+          error: "Message not found",
         },
-        {
-          status: 404,
-        }
+        { status: 404 }
       );
     }
 
@@ -135,21 +114,15 @@ export async function DELETE(req: Request) {
         success: true,
         message: "Message deleted successfully",
       },
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
-  } catch (error) {
-    console.log(error);
-
+  } catch  {
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to delete message",
+        error: "Failed to delete message",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
