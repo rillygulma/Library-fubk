@@ -113,14 +113,14 @@ const branchLibrarians: Record<string, Librarian> = {
   },
 
   "law-library": {
-    name: "Barr. Abdul Salami",
+    name: "Hajiya Hadiza Bande",
     rank: "Law Librarian",
     phone: "+2348045678901",
     image: "/images/Take-Off-Library.JPG",
   },
 
   "annex-library": {
-    name: "Miss Fatima Abdullahi",
+    name: "Abdullahi A",
     rank: "Branch Librarian",
     phone: "+2348056789012",
     image: "/images/University-Library.JPG",
@@ -134,7 +134,7 @@ const branchLibrarians: Record<string, Librarian> = {
   },
 
   "clinical-library": {
-    name: "Dr. Ibrahim Shehu",
+    name: "Malam Usman ",
     rank: "Clinical Librarian",
     phone: "+2348078901234",
     image: "/images/University-Library.JPG",

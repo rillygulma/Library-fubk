@@ -26,12 +26,12 @@ const FacilitiesPage = () => {
       description: "This is the University Library Processing Section.",
     },
     {
-      image: "/images/Outside-Reading-Room.jpg",
+      image: "/images/Outside-Reading-Room-Psite.jpg",
       title: "Permanent Site Outside Reading Area",
       description: "First Reading Hall in the University Library.",
     },
     {
-      image: "/images/Books-Showcase.jpg",
+      image: "/images/Psite-Books.jpg",
       title: "Books Showcase",
       description: "This is the library book collection shelf.",
     },

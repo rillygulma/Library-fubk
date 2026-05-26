@@ -130,7 +130,7 @@ const HomePage = () => {
       submenu: [
         {
           sublink: "Fubk AI I Know Everything",
-          subpath: "/ai-chatbot",
+          subpath: "/research-ai",
         },
         {
           sublink: "E-Library Catalog",
@@ -156,10 +156,10 @@ const HomePage = () => {
       submenu: [
         {
           sublink: "Fubk AI Librarian",
-          subpath: "/fubkChatBot",
+          subpath: "/ai-chatbot",
         },
         {
-          sublink: "Rules & Regulation",
+          sublink: "Frequently Asked Questions",
           subpath: "/help",
         },
       ],
@@ -364,10 +364,6 @@ const HomePage = () => {
               </button>
             </div>
 
-            {/* SUGGESTIONS */}
-            <p className="text-sm text-gray-500">
-              Try: “Physics textbooks”, “Law journals”, “Computer Science”
-            </p>
 
             {/* MAIN BUTTON */}
             <Link href="/welcomeNote">
@@ -378,7 +374,7 @@ const HomePage = () => {
 
             {/* AI LIBRARIAN BUTTON */}
             <Link href="/ai-chatbot">
-              <button className="rounded-lg border border-blue-600 ml-5 px-5 py-3 text-blue-600 transition hover:bg-blue-600 hover:text-white">
+              <button className="rounded-lg border border-blue-600 ml-5 mt-5 px-5 py-3 text-blue-600 transition hover:bg-blue-600 hover:text-white">
                 Ask AI Librarian 🤖
               </button>
             </Link>
