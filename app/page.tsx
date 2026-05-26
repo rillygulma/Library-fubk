@@ -275,7 +275,7 @@ const HomePage = () => {
                         </button>
 
                         {openSubmenu === link && (
-                          <ul className="ml-4 mt-3 space-y-2">
+                          <ul className="ml-4 mt-7 space-y-4">
                             {submenu.map(({ sublink, subpath }) => (
                               <li key={sublink}>
                                 <Link
