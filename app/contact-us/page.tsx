@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 type FormData = {
   name: string;
@@ -46,7 +47,7 @@ const ContactPage = () => {
         throw new Error("Failed to send message");
       }
 
-      alert("Message sent successfully!");
+      toast.success("Message sent successfully!");
 
       setFormData({
         name: "",
@@ -54,7 +55,7 @@ const ContactPage = () => {
         message: "",
       });
     } catch (error) {
-      alert("Failed to send message.");
+      toast.error("Failed to send message.");
     } finally {
       setIsLoading(false);
     }

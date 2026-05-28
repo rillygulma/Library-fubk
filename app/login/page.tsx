@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 type Role = "student" | "staff" | "librarian" | "admin";
 
@@ -46,19 +47,27 @@ export default function LoginPage() {
 
       const user = data.user;
 
+      // SUCCESS TOAST
+      toast.success("Login successful");
+
       // ================= ROLE ROUTING =================
-      if (user.role === "admin") {
-        router.push("/admin-dashboard");
-      } else if (user.role === "librarian") {
-        router.push("/librarian-dashboard");
-      } else if (user.role === "staff") {
-        router.push("/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
+      setTimeout(() => {
+        if (user.role === "admin") {
+          router.push("/admin-dashboard");
+        } else if (user.role === "librarian") {
+          router.push("/librarian-dashboard");
+        } else if (user.role === "staff") {
+          router.push("/dashboard");
+        } else {
+          router.push("/dashboard");
+        }
+      }, 1000);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Login failed";
-      alert(message);
+      const message =
+        error instanceof Error ? error.message : "Login failed";
+
+      // ERROR TOAST
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -107,7 +116,7 @@ export default function LoginPage() {
           {/* BUTTON */}
           <button
             disabled={loading}
-            className="mt-6 w-full bg-[#003566] hover:bg-[#00264d] transition text-white font-semibold py-3 rounded-2xl shadow-lg"
+            className="mt-6 w-full bg-[#003566] hover:bg-[#00264d] transition text-white font-semibold py-3 rounded-2xl shadow-lg disabled:opacity-70"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

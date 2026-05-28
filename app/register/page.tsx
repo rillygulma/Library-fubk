@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { toast } from "react-hot-toast";
 
 type Role = "student" | "staff" | "librarian" | "admin";
 
@@ -43,6 +44,8 @@ export default function RegisterPage() {
         ...prev,
         profilePicture: reader.result as string,
       }));
+
+      toast.success("Profile picture selected");
     };
   };
 
@@ -70,7 +73,8 @@ export default function RegisterPage() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      alert(data.message);
+      // SUCCESS TOAST
+      toast.success(data.message || "Account created successfully");
 
       // reset form
       setForm({
@@ -87,8 +91,11 @@ export default function RegisterPage() {
         profilePicture: "",
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      alert(message);
+      const message =
+        error instanceof Error ? error.message : String(error);
+
+      // ERROR TOAST
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -229,6 +236,7 @@ export default function RegisterPage() {
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
+
             <input
               name="department"
               placeholder="Department"
@@ -257,7 +265,7 @@ export default function RegisterPage() {
           {/* BUTTON */}
           <button
             disabled={loading}
-            className="mt-8 w-full bg-[#003566] hover:bg-[#00264d] transition text-white font-semibold py-3 rounded-2xl shadow-lg"
+            className="mt-8 w-full bg-[#003566] hover:bg-[#00264d] transition text-white font-semibold py-3 rounded-2xl shadow-lg disabled:opacity-70"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>

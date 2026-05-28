@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 type Announcement = {
   _id: string;
@@ -50,7 +51,7 @@ export default function AnnouncementsPage() {
 
   // CREATE
   const handleCreate = async () => {
-    if (!title || !message) return alert("Fill all fields");
+    if (!title || !message) return toast.error("Fill all fields");
 
     try {
       await axios.post("/api/announcements", {

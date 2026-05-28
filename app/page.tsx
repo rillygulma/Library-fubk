@@ -275,13 +275,13 @@ const HomePage = () => {
                         </button>
 
                         {openSubmenu === link && (
-                          <ul className="ml-4 mt-7 space-y-4">
+                          <ul className="ml-4 mt-4 space-y-6 rounded-lg bg-blue-400 p-4 shadow-xl">
                             {submenu.map(({ sublink, subpath }) => (
                               <li key={sublink}>
                                 <Link
                                   href={subpath}
                                   onClick={closeMenus}
-                                  className="block text-sm uppercase text-white"
+                                  className="block rounded-lg bg-white/10 px-3 py-2 text-sm uppercase text-white transition hover:bg-white hover:text-blue-900"
                                 >
                                   {sublink}
                                 </Link>
@@ -363,7 +363,6 @@ const HomePage = () => {
                 Search
               </button>
             </div>
-
 
             {/* MAIN BUTTON */}
             <Link href="/welcomeNote">
