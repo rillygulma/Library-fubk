@@ -131,17 +131,17 @@ export default function UserDashboard() {
             {
               icon: ClipboardList,
               label: "Borrowed Books",
-              path: "/borrowed",
+              path: "#",
             },
             {
               icon: Bell,
               label: "Announcements",
-              path: "/",
+              path: "#",
             },
             {
               icon: Settings,
-              label: "Library Rules",
-              path: "/",
+              label: "Library Rules & Regulations",
+              path: "/library-rules",
             },
           ].map((item, i) => (
             <Link
@@ -241,7 +241,7 @@ export default function UserDashboard() {
           <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
             {/* Browse E-Library */}
             <Link
-              href="/e-library"
+              href="/e-library/databases"
               className="rounded-3xl bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
             >
               <h3 className="text-lg font-bold">Browse E-Library</h3>
@@ -256,10 +256,10 @@ export default function UserDashboard() {
 
             {/* Library Rules */}
             <Link
-              href="/help"
+              href="/library-rules"
               className="rounded-3xl bg-white p-6 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
             >
-              <h3 className="text-lg font-bold">Library Rules</h3>
+              <h3 className="text-lg font-bold">Library Rules & Regulations</h3>
               <p className="text-sm text-gray-500">
                 Read guidelines & policies
               </p>

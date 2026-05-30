@@ -154,7 +154,7 @@ const HomePage = () => {
       ],
     },
     {
-      link: "SECTIONS & UNITS",
+      link: "STAFFS & SECTIONS",
       path: "/staff",
     },
     {
@@ -478,8 +478,8 @@ const HomePage = () => {
                       link: "/library-Membership",
                     },
                     {
-                      title: "Departments",
-                      link: "/branches",
+                      title: "Library Rules & Regulations",
+                      link: "/library-rules",
                     },
                   ].map((item) => (
                     <Link
