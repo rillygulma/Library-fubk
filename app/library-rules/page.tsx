@@ -30,7 +30,7 @@ export default function LibraryRulesPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       {/* HERO */}
-      <section className="bg-gradient-to-r from-blue-900 via-blue-800 to-sky-700 py-24 px-6">
+      <section className="bg-gradient-to-r from-blue-500 via-blue-800 to-sky-700 py-24 px-6">
         <div className="max-w-6xl mx-auto text-center text-white">
           <ShieldAlert className="mx-auto h-16 w-16 mb-6" />
 
@@ -129,13 +129,13 @@ export default function LibraryRulesPage() {
       </section>
 
       {/* FOOTER MESSAGE */}
-      <section className="bg-slate-900 text-white py-10 px-6">
+      <section className="bg-blue-500 text-white py-10 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-lg">
             Federal University Birnin Kebbi Library Complex
           </p>
 
-          <p className="text-slate-400 mt-2">
+          <p className="text-white mt-2">
             Supporting Teaching, Learning and Research Excellence
           </p>
         </div>

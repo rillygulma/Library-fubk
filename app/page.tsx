@@ -134,8 +134,8 @@ const HomePage = () => {
           subpath: "/facilities",
         },
         {
-          sublink: "Contact Us",
-          subpath: "/contact-us",
+          sublink: "Library Membership",
+          subpath: "/library-Membership",
         },
       ],
     },
@@ -177,15 +177,20 @@ const HomePage = () => {
           sublink: "Frequently Asked Questions",
           subpath: "/help",
         },
+        {
+          sublink: "Library Rules & Regulations",
+          subpath: "/library-rules",
+        },
       ],
     },
-    {
-      link: "Library Membership",
-      path: "/library-Membership",
-    },
+    
     {
       link: "News & Events",
       path: "/events",
+    },
+    {
+      link: "Contact Us",
+      path: "/contact-us",
     },
   ];
 
@@ -392,9 +397,7 @@ const HomePage = () => {
                   📢 {announcement.title}
                 </h3>
 
-                <p className="mb-3 text-gray-700">
-                  {announcement.message}
-                </p>
+                <p className="mb-3 text-gray-700">{announcement.message}</p>
 
                 <p className="text-right text-sm italic text-gray-500">
                   - {announcement.createdBy || "University Librarian"}
