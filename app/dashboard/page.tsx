@@ -19,8 +19,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type User = {
+  _id?: string;
   fullName?: string;
   role?: string;
+  email?: string;
 };
 
 export default function UserDashboard() {
@@ -29,23 +31,30 @@ export default function UserDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const stored = window.localStorage.getItem("user");
-
-    if (!stored) return;
-
+  const getCurrentUser = async () => {
     try {
-      const parsed = JSON.parse(stored);
+      const storedUser = localStorage.getItem("user");
 
-      requestAnimationFrame(() => {
-        setUser(parsed);
-      });
-    } catch (err) {
-      console.log("Invalid user data:", err);
-      window.localStorage.removeItem("user");
+      if (!storedUser) return;
+
+      const parsedUser = JSON.parse(storedUser);
+
+      const res = await fetch(
+        `/api/users/${parsedUser._id}`
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error(error);
     }
-  }, []);
+  };
+
+  getCurrentUser();
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -120,13 +129,13 @@ export default function UserDashboard() {
           {[
             {
               icon: LayoutDashboard,
-              label: "Dashboard",
-              path: "/dashboard",
+              label: "FUBK AI",
+              path: "/research-ai",
             },
             {
               icon: BookOpen,
-              label: "Fubk AI",
-              path: "/research-ai",
+              label: "E-Library",
+              path: "/e-library/databases",
             },
             {
               icon: ClipboardList,

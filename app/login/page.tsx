@@ -25,9 +25,7 @@ export default function LoginPage() {
     password: "",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -53,11 +51,7 @@ export default function LoginPage() {
     if (!form.email.trim()) {
       newErrors.email = "Email is required";
       valid = false;
-    } else if (
-      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(
-        form.email
-      )
-    ) {
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)) {
       newErrors.email = "Invalid email address";
       valid = false;
     }
@@ -67,8 +61,7 @@ export default function LoginPage() {
       newErrors.password = "Password is required";
       valid = false;
     } else if (form.password.length < 6) {
-      newErrors.password =
-        "Password must be at least 6 characters";
+      newErrors.password = "Password must be at least 6 characters";
       valid = false;
     }
 
@@ -106,6 +99,20 @@ export default function LoginPage() {
 
       const user = data.user;
 
+      if (!user?._id) {
+        throw new Error("Invalid user data from server");
+      }
+
+      const safeUser = {
+        _id: user._id,
+        fullName: user.fullName || "",
+        role: user.role || "student",
+        email: user.email || "",
+        profilePicture: user.profilePicture || "",
+      };
+
+      localStorage.setItem("user", JSON.stringify(safeUser));
+
       // SUCCESS TOAST
       toast.success("Login successful");
 
@@ -122,8 +129,7 @@ export default function LoginPage() {
         }
       }, 1000);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Login failed";
+      const message = error instanceof Error ? error.message : "Login failed";
 
       // ERROR TOAST
       toast.error(message);
@@ -143,9 +149,8 @@ export default function LoginPage() {
             </h2>
 
             <p className="mt-4 text-gray-700 leading-7">
-              To register for the FUBK E-Library system,
-              kindly contact the ICT Department for account
-              creation and registration assistance.
+              To register for the FUBK E-Library system, kindly contact the ICT
+              Department for account creation and registration assistance.
             </p>
 
             <button
@@ -161,9 +166,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* HEADER */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
-            Welcome Back
-          </h1>
+          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
 
           <p className="text-gray-200 text-sm mt-2">
             Login to access the E-Library system
@@ -185,16 +188,12 @@ export default function LoginPage() {
                 value={form.email}
                 onChange={handleChange}
                 className={`input ${
-                  errors.email
-                    ? "border-red-500 focus:ring-red-200"
-                    : ""
+                  errors.email ? "border-red-500 focus:ring-red-200" : ""
                 }`}
               />
 
               {errors.email && (
-                <p className="mt-2 text-sm text-red-500">
-                  {errors.email}
-                </p>
+                <p className="mt-2 text-sm text-red-500">{errors.email}</p>
               )}
             </div>
 
@@ -207,16 +206,12 @@ export default function LoginPage() {
                 value={form.password}
                 onChange={handleChange}
                 className={`input ${
-                  errors.password
-                    ? "border-red-500 focus:ring-red-200"
-                    : ""
+                  errors.password ? "border-red-500 focus:ring-red-200" : ""
                 }`}
               />
 
               {errors.password && (
-                <p className="mt-2 text-sm text-red-500">
-                  {errors.password}
-                </p>
+                <p className="mt-2 text-sm text-red-500">{errors.password}</p>
               )}
             </div>
           </div>
