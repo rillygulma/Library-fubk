@@ -10,7 +10,7 @@ type BlogPost = {
   description: string;
   content: string;
   images: string[];
-  date?: string; // ✅ matches your backend
+  date?: string;
   createdAt?: string;
 };
 
@@ -113,15 +113,15 @@ const BlogPosts = () => {
             >
               {/* CAROUSEL */}
               {post.images?.length > 0 && (
-                <div className="relative h-56 sm:h-64 xl:h-80 mb-4">
-                  <Carousel>
+                <div className="h-[300px] sm:h-[320px] md:h-[350px] lg:h-[380px] mb-4 rounded-xl overflow-hidden">
+                  <Carousel className="h-full">
                     {post.images.map((img, index) => (
                       <div key={index} className="relative w-full h-full">
                         <Image
                           src={img}
                           alt={post.title}
                           fill
-                          className="object-contain bg-black"
+                          className="object-cover"
                           unoptimized
                         />
                       </div>
