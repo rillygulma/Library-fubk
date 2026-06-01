@@ -11,7 +11,6 @@ export async function POST(req: NextRequest) {
 
     const { email, password } = await req.json();
 
-    // ================= VALIDATION =================
     if (!email || !password) {
       return NextResponse.json(
         {
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ================= JWT TOKEN =================
     const token = signToken({
       id: user._id.toString(),
       role: user.role,
@@ -60,7 +58,7 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Login successful",
         user: {
-          id: user._id,
+          _id: user._id.toString(),
           fullName: user.fullName,
           email: user.email,
           role: user.role,
@@ -70,7 +68,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
-    // ================= COOKIE =================
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

@@ -74,7 +74,6 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // VALIDATE BEFORE LOGIN
     if (!validateForm()) {
       toast.error("Please use valid credentials");
       return;
@@ -97,41 +96,49 @@ export default function LoginPage() {
         throw new Error(data.message || "Login failed");
       }
 
-      const user = data.user;
+      const user = data?.user;
 
-      if (!user?._id) {
-        throw new Error("Invalid user data from server");
+      if (!user) {
+        throw new Error("Invalid response from server");
       }
 
+      // ✅ safe user normalization
       const safeUser = {
-        _id: user._id,
+        _id: user._id?.toString?.() || user._id,
         fullName: user.fullName || "",
         role: user.role || "student",
         email: user.email || "",
         profilePicture: user.profilePicture || "",
       };
 
+      if (!safeUser._id) {
+        throw new Error("User ID missing from server response");
+      }
+
+      // ✅ store user properly
       localStorage.setItem("user", JSON.stringify(safeUser));
 
-      // SUCCESS TOAST
       toast.success("Login successful");
 
       // ================= ROLE ROUTING =================
       setTimeout(() => {
-        if (user.role === "admin") {
-          router.push("/admin-dashboard");
-        } else if (user.role === "librarian") {
-          router.push("/librarian-dashboard");
-        } else if (user.role === "staff") {
-          router.push("/dashboard");
-        } else {
-          router.push("/dashboard");
+        switch (safeUser.role) {
+          case "admin":
+            router.push("/admin-dashboard");
+            break;
+          case "librarian":
+            router.push("/librarian-dashboard");
+            break;
+          case "staff":
+          case "student":
+          default:
+            router.push("/dashboard");
+            break;
         }
-      }, 1000);
+      }, 800);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Login failed";
 
-      // ERROR TOAST
       toast.error(message);
     } finally {
       setLoading(false);

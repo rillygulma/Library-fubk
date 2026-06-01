@@ -27,34 +27,23 @@ type User = {
 
 export default function UserDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-  const getCurrentUser = async () => {
-    try {
-      const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem("user");
 
-      if (!storedUser) return;
-
-      const parsedUser = JSON.parse(storedUser);
-
-      const res = await fetch(
-        `/api/users/${parsedUser._id}`
-      );
-
-      const data = await res.json();
-
-      if (data.success) {
-        setUser(data.user);
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        // avoid synchronous setState inside effect to prevent cascading renders
+        const t = setTimeout(() => setCurrentUser(parsed), 0);
+        return () => clearTimeout(t);
+      } catch (err) {
+        console.log(err);
       }
-    } catch (error) {
-      console.error(error);
     }
-  };
-
-  getCurrentUser();
-}, []);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -204,7 +193,7 @@ export default function UserDashboard() {
                 Dashboard Overview
               </h2>
               <p className="text-sm text-gray-500">
-                Welcome back, {user?.fullName || "User"}
+                Welcome back, {currentUser?.fullName || "User"}
               </p>
             </div>
           </div>
@@ -212,15 +201,15 @@ export default function UserDashboard() {
           <div className="flex items-center gap-3 sm:gap-5">
             <div className="flex items-center gap-3 rounded-2xl bg-gray-100 px-3 py-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
-                {user?.fullName?.charAt(0) || "U"}
+                {currentUser?.fullName?.charAt(0) || "U"}
               </div>
 
               <div className="hidden sm:block">
                 <p className="text-sm font-semibold text-gray-800">
-                  {user?.fullName || "User"}
+                  {currentUser?.fullName || "User"}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {user?.role || "Student/Staff"}
+                <p className="text-xs text-gray-500 uppercase">
+                  {currentUser?.role || "Student/Staff"}
                 </p>
               </div>
             </div>

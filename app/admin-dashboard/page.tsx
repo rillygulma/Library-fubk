@@ -72,6 +72,7 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -172,6 +173,21 @@ export default function AdminDashboard() {
     };
 
     fetchContactMessages();
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        // avoid synchronous setState inside effect to prevent cascading renders
+        const t = setTimeout(() => setCurrentUser(parsed), 0);
+        return () => clearTimeout(t);
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }, []);
 
   const editUser = async (user: User) => {
@@ -384,15 +400,15 @@ export default function AdminDashboard() {
 
             <div className="flex items-center gap-3 rounded-2xl bg-gray-100 px-3 py-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
-                {users?.[0]?.fullName?.charAt(0) || "A"}
+                {currentUser?.fullName?.charAt(0) || "A"}
               </div>
 
               <div className="hidden sm:block">
                 <p className="text-sm font-semibold text-gray-800">
-                  {users?.[0]?.fullName || "Admin"}
+                  {currentUser?.fullName || "Admin"}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {users?.[0]?.role || "System User"}
+                <p className="text-xs text-gray-500 uppercase">
+                  {currentUser?.role || "System User"}
                 </p>
               </div>
             </div>
