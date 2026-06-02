@@ -16,6 +16,8 @@ import {
   Megaphone,
   LogOut,
   MessageCircle,
+  Book,
+  ClipboardList,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -293,13 +295,31 @@ export default function AdminDashboard() {
               label: "Dashboard",
               path: "/admin/dashboard",
             },
-            { icon: Users, label: "Users", path: "/register" },
+            { 
+              icon: Users, 
+              label: "Users", 
+              path: "/register" 
+            },
+            { 
+              icon: BookOpen, 
+              label: "Book Management", 
+              path: "#" 
+            },
+            { 
+              icon: ClipboardList, 
+              label: "Book Requests", 
+              path: "#" 
+            },
             {
               icon: Megaphone,
               label: "Announcements",
               path: "/admin/announcements",
             },
-            { icon: FileText, label: "Blog Posts", path: "/admin/blog" },
+            { 
+              icon: FileText, 
+              label: "Blog Posts", 
+              path: "/admin/blog" 
+            },
             {
               icon: MessageCircle,
               label: "Contact Us Message",

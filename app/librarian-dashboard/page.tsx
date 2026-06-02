@@ -12,6 +12,7 @@ import {
   Megaphone,
   LogOut,
   MessageCircle,
+  ClipboardList,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -94,7 +95,6 @@ export default function LibrarianDashboard() {
 
 useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
@@ -165,7 +165,21 @@ useEffect(() => {
               label: "Dashboard",
               path: "/librarian-dashboard",
             },
-            { icon: Users, label: "Users", path: "/register" },
+            { 
+              icon: Users, 
+              label: "Users", 
+              path: "/register" 
+            },
+            { 
+              icon: BookOpen, 
+              label: "Book Management", 
+              path: "#" 
+            },
+            { 
+              icon: ClipboardList, 
+              label: "Book Requests", 
+              path: "#" 
+            },
             {
               icon: Megaphone,
               label: "Announcements",
