@@ -1,17 +1,6 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface IBorrowRequest extends Document {
-  user: mongoose.Types.ObjectId;
-  book: mongoose.Types.ObjectId;
-
-  status: "pending" | "approved" | "rejected";
-
-  requestDate: Date;
-  approvedDate?: Date;
-  dueDate?: Date;
-}
-
-const BorrowRequestSchema = new Schema<IBorrowRequest>(
+const BorrowRequestSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -19,26 +8,52 @@ const BorrowRequestSchema = new Schema<IBorrowRequest>(
       required: true,
     },
 
-    book: {
-      type: Schema.Types.ObjectId,
-      ref: "Book",
+    title: {
+      type: String,
+      required: true,
+    },
+
+    author: {
+      type: String,
+      required: true,
+    },
+
+    isbn: {
+      type: String,
       required: true,
     },
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: [
+        "borrowed",
+        "returned",
+        "overdue",
+      ],
+      default: "borrowed",
     },
 
-    requestDate: {
+    borrowDate: {
       type: Date,
       default: Date.now,
     },
 
-    approvedDate: Date,
+    dueDate: {
+      type: Date,
+      required: true,
+    },
 
-    dueDate: Date,
+    returnDate: Date,
+
+    isReturned: {
+      type: Boolean,
+      default: false,
+    },
+
+    fine: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -46,7 +61,7 @@ const BorrowRequestSchema = new Schema<IBorrowRequest>(
 );
 
 export default mongoose.models.BorrowRequest ||
-  mongoose.model<IBorrowRequest>(
+  mongoose.model(
     "BorrowRequest",
     BorrowRequestSchema
   );
