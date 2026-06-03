@@ -6,12 +6,12 @@ export const runtime = "nodejs";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
 
-    const { userId } = params;
+    const { userId } = await context.params;
 
     const borrows = await BorrowRequest.find({
       user: userId,
@@ -21,7 +21,7 @@ export async function GET(
       success: true,
       borrows,
     });
-  } catch  {
+  } catch {
     return NextResponse.json(
       { success: false },
       { status: 500 }
