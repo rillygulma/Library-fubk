@@ -24,33 +24,35 @@ export default function BorrowBookPage() {
     title: "",
     author: "",
     isbn: "",
-    dueDate: "",
   });
 
-  // ================= SEARCH USER (EMAIL OR PHONE) =================
+  // ================= SEARCH USER =================
   const searchUser = async () => {
-    if (!query.trim()) {
-      return alert("Enter email or phone number");
+    const cleanedQuery = query.trim();
+
+    if (!cleanedQuery) {
+      alert("Enter email or phone number");
+      return;
     }
 
     try {
       setLoadingUser(true);
+      setUser(null);
 
       const res = await fetch(
-        `/api/users/search?query=${encodeURIComponent(query)}`
+        `/api/users/search?query=${encodeURIComponent(cleanedQuery)}`
       );
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !data?.user) {
         alert(data.message || "User not found");
-        setUser(null);
         return;
       }
 
       setUser(data.user);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert("Failed to search user");
     } finally {
       setLoadingUser(false);
@@ -61,14 +63,20 @@ export default function BorrowBookPage() {
   const handleBorrow = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      return alert("Search a user first");
+    if (!user?._id) {
+      alert("Search a user first");
+      return;
+    }
+
+    if (!book.title || !book.author || !book.isbn) {
+      alert("Fill all book details");
+      return;
     }
 
     try {
       setSubmitting(true);
 
-      const res = await fetch("/api/borrows", {
+      const res = await fetch("/api/borrow-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,14 +86,13 @@ export default function BorrowBookPage() {
           title: book.title,
           author: book.author,
           isbn: book.isbn,
-          dueDate: book.dueDate,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message);
+        throw new Error(data.message || "Borrow failed");
       }
 
       alert("Borrow record created successfully");
@@ -94,18 +101,13 @@ export default function BorrowBookPage() {
         title: "",
         author: "",
         isbn: "",
-        dueDate: "",
       });
 
       setQuery("");
       setUser(null);
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Something went wrong";
-
-      alert(message);
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -177,16 +179,11 @@ export default function BorrowBookPage() {
               </div>
 
               <div>
-                <h3 className="text-xl font-bold">
-                  {user.fullName}
-                </h3>
-
+                <h3 className="text-xl font-bold">{user.fullName}</h3>
                 <p className="text-gray-500">{user.email}</p>
 
                 {user.phoneNo && (
-                  <p className="text-gray-500">
-                    {user.phoneNo}
-                  </p>
+                  <p className="text-gray-500">{user.phoneNo}</p>
                 )}
 
                 <span className="mt-2 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
@@ -216,7 +213,6 @@ export default function BorrowBookPage() {
                 onChange={(e) =>
                   setBook({ ...book, title: e.target.value })
                 }
-                required
                 className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
               />
 
@@ -227,7 +223,6 @@ export default function BorrowBookPage() {
                 onChange={(e) =>
                   setBook({ ...book, author: e.target.value })
                 }
-                required
                 className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
               />
 
@@ -238,17 +233,6 @@ export default function BorrowBookPage() {
                 onChange={(e) =>
                   setBook({ ...book, isbn: e.target.value })
                 }
-                required
-                className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-              />
-
-              <input
-                type="date"
-                value={book.dueDate}
-                onChange={(e) =>
-                  setBook({ ...book, dueDate: e.target.value })
-                }
-                required
                 className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>

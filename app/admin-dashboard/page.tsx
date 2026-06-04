@@ -102,12 +102,19 @@ export default function AdminDashboard() {
     if (!editingUser) return;
 
     try {
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        role: formData.role.toLowerCase(),
+        profilePicture: formData.profilePicture,
+      };
+
       const res = await fetch(`/api/users/${editingUser._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Update failed");
@@ -295,30 +302,30 @@ export default function AdminDashboard() {
               label: "Dashboard",
               path: "/admin/dashboard",
             },
-            { 
-              icon: Users, 
-              label: "Users", 
-              path: "/register" 
+            {
+              icon: Users,
+              label: "Users",
+              path: "/register",
             },
-            { 
-              icon: BookOpen, 
-              label: "Book Management", 
-              path: "#" 
+            {
+              icon: BookOpen,
+              label: "Book Management",
+              path: "#",
             },
-            { 
-              icon: ClipboardList, 
-              label: "Book Requests", 
-              path: "#" 
+            {
+              icon: ClipboardList,
+              label: "Book Requests",
+              path: "#",
             },
             {
               icon: Megaphone,
               label: "Announcements",
               path: "/admin/announcements",
             },
-            { 
-              icon: FileText, 
-              label: "Blog Posts", 
-              path: "/admin/blog" 
+            {
+              icon: FileText,
+              label: "Blog Posts",
+              path: "/admin/blog",
             },
             {
               icon: MessageCircle,
@@ -660,9 +667,11 @@ export default function AdminDashboard() {
                   }
                   className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-blue-500"
                 >
-                  <option value="Admin">Admin</option>
-                  <option value="Staff">Staff</option>
-                  <option value="Student">Student</option>
+                  <option value="admin">Admin</option>
+                  <option value="staff">Staff</option>
+                  <option value="librarian">Librarian</option>
+                  <option value="undergraduate">Undergraduate</option>
+                  <option value="postgraduate">Postgraduate</option>
                 </select>
               </div>
 

@@ -4,7 +4,12 @@ import { useState } from "react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 
-type Role = "student" | "staff" | "librarian" | "admin";
+type Role =
+  | "undergraduate"
+  | "postgraduate"
+  | "staff"
+  | "librarian"
+  | "admin";
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -13,7 +18,7 @@ export default function RegisterPage() {
     fullName: "",
     email: "",
     password: "",
-    role: "student" as Role,
+    role: "undergraduate" as Role,
     gender: "",
     admissionNo: "",
     staffNo: "",
@@ -49,7 +54,6 @@ export default function RegisterPage() {
     };
   };
 
-  // ================= SUBMIT (FETCH) =================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -61,10 +65,7 @@ export default function RegisterPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...form,
-          gender: form.gender,
-        }),
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
@@ -73,15 +74,13 @@ export default function RegisterPage() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // SUCCESS TOAST
       toast.success(data.message || "Account created successfully");
 
-      // reset form
       setForm({
         fullName: "",
         email: "",
         password: "",
-        role: "student",
+        role: "undergraduate",
         gender: "",
         admissionNo: "",
         staffNo: "",
@@ -94,7 +93,6 @@ export default function RegisterPage() {
       const message =
         error instanceof Error ? error.message : String(error);
 
-      // ERROR TOAST
       toast.error(message);
     } finally {
       setLoading(false);
@@ -104,7 +102,6 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#001f3f] via-[#003566] to-[#00509d] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-4xl">
-        {/* HEADER */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white">
             User Registration
@@ -114,55 +111,37 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* FORM */}
         <form
           onSubmit={handleSubmit}
           className="bg-white/95 backdrop-blur-lg shadow-2xl rounded-3xl p-6 md:p-10"
         >
-          {/* PROFILE IMAGE */}
+          {/* PROFILE */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border-4 border-[#003566] flex items-center justify-center">
               {form.profilePicture ? (
                 <Image
                   src={form.profilePicture}
                   alt="profile"
-                  className="w-full h-full object-cover"
                   width={96}
                   height={96}
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-xs text-gray-500">Upload</span>
               )}
             </div>
 
-            <div className="mt-4 w-full max-w-xs">
-              <label
-                htmlFor="profile-upload"
-                className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#003566]/30 bg-[#f8fbff] px-4 py-6 text-center transition hover:border-[#003566] hover:bg-[#eef5ff]"
-              >
-                <span className="text-sm font-medium text-[#003566]">
-                  Choose Profile Picture
-                </span>
-
-                <span className="mt-1 text-xs text-gray-500">
-                  PNG, JPG or JPEG
-                </span>
-
-                <input
-                  id="profile-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImage}
-                  className="hidden"
-                />
-              </label>
-
-              <p className="mt-2 text-center text-sm text-gray-600">
-                {form.profilePicture
-                  ? "Image selected successfully"
-                  : "No file chosen"}
-              </p>
-            </div>
+            <label className="mt-4 block cursor-pointer text-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImage}
+                className="hidden"
+              />
+              <div className="px-4 py-3 border-2 border-dashed rounded-xl">
+                Choose Profile Picture
+              </div>
+            </label>
           </div>
 
           {/* GRID */}
@@ -195,19 +174,21 @@ export default function RegisterPage() {
               required
             />
 
+            {/* ROLE */}
             <select
               name="role"
               value={form.role}
               onChange={handleChange}
               className="input"
             >
-              <option value="student">Student</option>
+              <option value="undergraduate">Undergraduate</option>
+              <option value="postgraduate">Postgraduate</option>
               <option value="staff">Staff</option>
               <option value="librarian">Librarian</option>
-              <option value="admin">Admin</option>
             </select>
 
-            {form.role === "student" ? (
+            {/* ADMISSION / STAFF */}
+            {["undergraduate", "postgraduate"].includes(form.role) ? (
               <input
                 name="admissionNo"
                 placeholder="Admission Number"
@@ -262,17 +243,15 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* BUTTON */}
           <button
             disabled={loading}
-            className="mt-8 w-full bg-[#003566] hover:bg-[#00264d] transition text-white font-semibold py-3 rounded-2xl shadow-lg disabled:opacity-70"
+            className="mt-8 w-full bg-[#003566] hover:bg-[#00264d] text-white font-semibold py-3 rounded-2xl"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
       </div>
 
-      {/* INPUT STYLE */}
       <style jsx>{`
         .input {
           width: 100%;
@@ -280,7 +259,6 @@ export default function RegisterPage() {
           border-radius: 14px;
           border: 1px solid #e5e7eb;
           outline: none;
-          transition: 0.2s ease-in-out;
         }
 
         .input:focus {

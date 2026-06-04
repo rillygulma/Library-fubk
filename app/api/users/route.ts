@@ -10,9 +10,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
 
     return NextResponse.json(
       {
@@ -20,15 +18,15 @@ export async function GET() {
         count: users.length,
         users,
       },
-      { status: 200 }
+      { status: 200 },
     );
-  } catch  {
+  } catch {
     return NextResponse.json(
       {
         success: false,
         error: "Failed to fetch users",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,19 +56,13 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = email?.trim().toLowerCase();
 
     // ================= VALIDATIONS =================
-    if (
-      !fullName ||
-      !normalizedEmail ||
-      !password ||
-      !role ||
-      !gender
-    ) {
+    if (!fullName || !normalizedEmail || !password || !role || !gender) {
       return NextResponse.json(
         {
           success: false,
           message: "Please fill all required fields",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,30 +72,46 @@ export async function POST(req: NextRequest) {
           success: false,
           message: "Invalid gender",
         },
-        { status: 400 }
-      );
-    }
-
-    if (role === "student" && !admissionNo) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Admission number is required for students",
-        },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (
-      ["staff", "librarian", "admin"].includes(role) &&
-      !staffNo
+      ![
+        "undergraduate",
+        "postgraduate",
+        "staff",
+        "librarian",
+        "admin",
+      ].includes(role)
     ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid role",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (["undergraduate", "postgraduate"].includes(role) && !admissionNo) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Admission number is required for undergraduate and postgraduate users",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (["staff", "librarian", "admin"].includes(role) && !staffNo) {
       return NextResponse.json(
         {
           success: false,
           message: "Staff number is required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -118,7 +126,7 @@ export async function POST(req: NextRequest) {
           success: false,
           message: "User already exists",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -129,12 +137,9 @@ export async function POST(req: NextRequest) {
     let imageUrl = "";
 
     if (profilePicture) {
-      const uploadRes = await cloudinary.uploader.upload(
-        profilePicture,
-        {
-          folder: "library-users",
-        }
-      );
+      const uploadRes = await cloudinary.uploader.upload(profilePicture, {
+        folder: "library-users",
+      });
 
       imageUrl = uploadRes.secure_url;
     }
@@ -146,10 +151,10 @@ export async function POST(req: NextRequest) {
       password: hashedPassword,
       role,
       gender,
-      admissionNo: role === "student" ? admissionNo : "",
-      staffNo: ["staff", "librarian", "admin"].includes(role)
-        ? staffNo
+      admissionNo: ["undergraduate", "postgraduate"].includes(role)
+        ? admissionNo
         : "",
+      staffNo: ["staff", "librarian", "admin"].includes(role) ? staffNo : "",
       department,
       faculty,
       phoneNo,
@@ -162,7 +167,7 @@ export async function POST(req: NextRequest) {
         message: "User created successfully",
         user,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch {
     return NextResponse.json(
@@ -170,7 +175,7 @@ export async function POST(req: NextRequest) {
         success: false,
         error: "Server Error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

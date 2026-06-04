@@ -24,11 +24,8 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(
-      { success: true, user },
-      { status: 200 }
-    );
-  } catch  {
+    return NextResponse.json({ success: true, user }, { status: 200 });
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to fetch user" },
       { status: 500 }
@@ -70,7 +67,7 @@ export async function PUT(
       );
     }
 
-    // ================= GENDER VALIDATION =================
+    // ================= VALIDATION =================
     if (gender && !["male", "female"].includes(gender)) {
       return NextResponse.json(
         { success: false, message: "Invalid gender" },
@@ -78,14 +75,30 @@ export async function PUT(
       );
     }
 
-    // ================= PASSWORD HANDLING =================
+    if (
+      role &&
+      ![
+        "undergraduate",
+        "postgraduate",
+        "staff",
+        "librarian",
+        "admin",
+      ].includes(role)
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Invalid role" },
+        { status: 400 }
+      );
+    }
+
+    // ================= PASSWORD =================
     let hashedPassword: string | undefined;
 
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // ================= PROFILE IMAGE =================
+    // ================= IMAGE UPLOAD =================
     let imageUrl = user.profilePicture;
 
     if (profilePicture) {
@@ -99,7 +112,7 @@ export async function PUT(
       imageUrl = uploadRes.secure_url;
     }
 
-    // ================= UPDATE DATA (SAFE BUILD) =================
+    // ================= SAFE UPDATE =================
     const updateData: Record<string, unknown> = {
       fullName,
       email,
@@ -115,22 +128,21 @@ export async function PUT(
       updateData.password = hashedPassword;
     }
 
+    // ✅ UPDATED ROLE LOGIC (NO MORE "student")
     updateData.admissionNo =
-      role === "student" ? admissionNo : "";
+      role && ["undergraduate", "postgraduate"].includes(role)
+        ? admissionNo
+        : "";
 
     updateData.staffNo =
-      ["staff", "librarian", "admin"].includes(role)
+      role && ["staff", "librarian", "admin"].includes(role)
         ? staffNo
         : "";
 
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      updateData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).select("-password");
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
 
     return NextResponse.json(
       {
@@ -140,7 +152,7 @@ export async function PUT(
       },
       { status: 200 }
     );
-  } catch  {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to update user" },
       { status: 500 }
@@ -173,7 +185,7 @@ export async function DELETE(
       { success: true, message: "User deleted successfully" },
       { status: 200 }
     );
-  } catch  {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to delete user" },
       { status: 500 }

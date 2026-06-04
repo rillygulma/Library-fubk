@@ -128,8 +128,8 @@ export default function UserDashboard() {
             },
             {
               icon: ClipboardList,
-              label: "Borrowed Books",
-              path: "#",
+              label: "Borrowed Books History",
+              path: "/borrow-history",
             },
             {
               icon: Bell,

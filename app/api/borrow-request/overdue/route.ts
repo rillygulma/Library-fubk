@@ -5,18 +5,25 @@ import BorrowRequest from "@/models/BorrowRequest";
 export const runtime = "nodejs";
 
 export async function GET() {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const borrows = await BorrowRequest.find({
-    dueDate: { $lt: new Date() },
-    isReturned: false,
-  }).populate(
-    "user",
-    "fullName email"
-  );
+    const today = new Date();
 
-  return NextResponse.json({
-    success: true,
-    borrows,
-  });
+    const overdue = await BorrowRequest.find({
+      status: "approved",
+      isReturned: false,
+      dueDate: { $lt: today },
+    }).populate("user", "fullName email role");
+
+    return NextResponse.json({
+      success: true,
+      overdue,
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false },
+      { status: 500 }
+    );
+  }
 }

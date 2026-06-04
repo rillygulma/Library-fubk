@@ -20,9 +20,16 @@ const UserSchema = new Schema(
 
     role: {
       type: String,
-      enum: ["student", "staff", "librarian", "admin"],
-      default: "student",
+      enum: [
+        "undergraduate",
+        "postgraduate",
+        "staff",
+        "librarian",
+        "admin",
+      ],
+      default: "undergraduate",
     },
+
     gender: {
       type: String,
       enum: ["male", "female"],
@@ -30,15 +37,16 @@ const UserSchema = new Schema(
 
     admissionNo: {
       type: String,
-
       required: function () {
-        return this.role === "student";
+        return (
+          this.role === "undergraduate" ||
+          this.role === "postgraduate"
+        );
       },
     },
 
     staffNo: {
       type: String,
-
       required: function () {
         return (
           this.role === "staff" ||
@@ -67,7 +75,7 @@ const UserSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const User = models.User || model("User", UserSchema);

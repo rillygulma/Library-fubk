@@ -15,20 +15,21 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  let decoded;
+  let decoded: { role: string };
 
   try {
     decoded = jwt.verify(
       token,
       process.env.JWT_SECRET!
-    ) as {
-      role: string;
-    };
+    ) as { role: string };
   } catch {
     redirect("/login");
   }
 
-  if (decoded.role !== "student" && decoded.role !== "staff") {
+  // ✅ UPDATED ROLE CHECK
+  const allowedRoles = ["undergraduate", "postgraduate", "staff"];
+
+  if (!allowedRoles.includes(decoded.role)) {
     redirect("/dashboard");
   }
 
