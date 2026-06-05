@@ -17,13 +17,40 @@ export async function PUT(
 
     if (!borrow) {
       return NextResponse.json(
-        { success: false, message: "Borrow not found" },
+        { success: false, message: "Borrow record not found" },
         { status: 404 }
+      );
+    }
+
+    // ================= ALREADY RETURNED CHECK =================
+    if (borrow.isReturned) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "This book has already been returned",
+        },
+        { status: 400 }
       );
     }
 
     const today = new Date();
 
+    // ================= ROLE-BASED FINE SYSTEM =================
+    const role = (borrow.user?.role || "").toLowerCase();
+
+    let finePerDay = 50; // Undergraduate default
+
+    if (role.includes("postgraduate")) {
+      finePerDay = 100;
+    } else if (
+      role.includes("staff") ||
+      role.includes("librarian") ||
+      role.includes("admin")
+    ) {
+      finePerDay = 200;
+    }
+
+    // ================= FINE CALCULATION =================
     let fine = 0;
 
     if (borrow.dueDate && today > borrow.dueDate) {
@@ -32,21 +59,35 @@ export async function PUT(
           (1000 * 60 * 60 * 24)
       );
 
-      fine = daysLate * 100;
+      fine = daysLate * finePerDay;
     }
 
-    borrow.status = "returned";
+    // ================= STATUS LOGIC =================
+    let status: "borrowed" | "returned" | "overdue" = "returned";
+
+    if (today > borrow.dueDate && !borrow.isReturned) {
+      status = "overdue";
+    }
+
+    // ================= UPDATE BORROW =================
     borrow.isReturned = true;
     borrow.returnDate = today;
     borrow.fine = fine;
+    borrow.status = status;
 
     await borrow.save();
 
     return NextResponse.json({
       success: true,
       message: "Book returned successfully",
-      fine,
-      borrow,
+      data: {
+        id: borrow._id,
+        title: borrow.title,
+        user: borrow.user,
+        status: borrow.status,
+        fine,
+        returnDate: borrow.returnDate,
+      },
     });
   } catch (error) {
     console.error("RETURN ERROR:", error);

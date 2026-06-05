@@ -14,49 +14,50 @@ export async function GET(req: Request) {
 
     if (!query) {
       return NextResponse.json(
-        { success: false, message: "Query is required" },
+        { success: false, message: "Query is required", borrows: [] },
         { status: 400 }
       );
     }
 
-    // ================= FIND USER =================
+    const cleaned = query.trim().toLowerCase();
+
+    // ✅ FIX 1: case-insensitive search
     const user = await User.findOne({
       $or: [
-        { email: query },
-        { phoneNo: query }
+        { email: { $regex: new RegExp(`^${cleaned}$`, "i") } },
+        { phoneNo: query.trim() },
       ],
     });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        borrows: [],
+        message: "User not found",
+      });
     }
 
-    // ================= FIND LATEST BORROW =================
-    const borrow = await BorrowRequest.findOne({
+    // ✅ FIX 2: ensure valid user ID exists in borrows
+    const borrows = await BorrowRequest.find({
       user: user._id,
     })
       .sort({ createdAt: -1 })
       .populate("user", "fullName email phoneNo role profilePicture");
 
-    if (!borrow) {
-      return NextResponse.json(
-        { success: false, message: "No borrow record found for user" },
-        { status: 404 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      borrow,
+      borrows,
+      user, // optional but helpful for debugging
     });
   } catch (error) {
     console.error("SEARCH BORROW ERROR:", error);
 
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      {
+        success: false,
+        message: "Internal server error",
+        borrows: [],
+      },
       { status: 500 }
     );
   }

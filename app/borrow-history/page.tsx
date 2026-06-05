@@ -29,9 +29,9 @@ export default function BorrowHistoryPage() {
 
   // You should store user in localStorage or session
   const userId =
-    typeof window !== "undefined"
-      ? localStorage.getItem("userId")
-      : null;
+  typeof window !== "undefined"
+    ? JSON.parse(localStorage.getItem("user") || "{}")._id
+    : null;
 
   useEffect(() => {
     const fetchHistory = async () => {

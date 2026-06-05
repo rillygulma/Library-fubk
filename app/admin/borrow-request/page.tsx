@@ -13,6 +13,12 @@ interface UserData {
   profilePicture?: string;
 }
 
+interface Book {
+  title: string;
+  author: string;
+  isbn: string;
+}
+
 export default function BorrowBookPage() {
   const [query, setQuery] = useState("");
   const [loadingUser, setLoadingUser] = useState(false);
@@ -20,11 +26,10 @@ export default function BorrowBookPage() {
 
   const [user, setUser] = useState<UserData | null>(null);
 
-  const [book, setBook] = useState({
-    title: "",
-    author: "",
-    isbn: "",
-  });
+  // ✅ MULTIPLE BOOKS STATE
+  const [books, setBooks] = useState<Book[]>([
+    { title: "", author: "", isbn: "" },
+  ]);
 
   // ================= SEARCH USER =================
   const searchUser = async () => {
@@ -59,6 +64,21 @@ export default function BorrowBookPage() {
     }
   };
 
+  // ================= BOOK HANDLERS =================
+  const handleBookChange = (
+    index: number,
+    field: keyof Book,
+    value: string
+  ) => {
+    const updated = [...books];
+    updated[index][field] = value;
+    setBooks(updated);
+  };
+
+  const addMoreBook = () => {
+    setBooks([...books, { title: "", author: "", isbn: "" }]);
+  };
+
   // ================= BORROW =================
   const handleBorrow = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +88,11 @@ export default function BorrowBookPage() {
       return;
     }
 
-    if (!book.title || !book.author || !book.isbn) {
+    const invalid = books.some(
+      (b) => !b.title || !b.author || !b.isbn
+    );
+
+    if (invalid) {
       alert("Fill all book details");
       return;
     }
@@ -83,9 +107,7 @@ export default function BorrowBookPage() {
         },
         body: JSON.stringify({
           email: user.email,
-          title: book.title,
-          author: book.author,
-          isbn: book.isbn,
+          books, // ✅ multiple books
         }),
       });
 
@@ -97,17 +119,14 @@ export default function BorrowBookPage() {
 
       alert("Borrow record created successfully");
 
-      setBook({
-        title: "",
-        author: "",
-        isbn: "",
-      });
-
+      setBooks([{ title: "", author: "", isbn: "" }]);
       setQuery("");
       setUser(null);
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : "Something went wrong");
+      alert(
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -205,42 +224,66 @@ export default function BorrowBookPage() {
               Book Details
             </h2>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <input
-                type="text"
-                placeholder="Book Title"
-                value={book.title}
-                onChange={(e) =>
-                  setBook({ ...book, title: e.target.value })
-                }
-                className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-              />
+            {/* BOOK INPUTS */}
+            {/* BOOK INPUTS */}
+{books.map((book, index) => (
+  <div
+    key={index}
+    className="mb-6 rounded-2xl border border-gray-200 p-4"
+  >
+    {/* NUMBER LABEL */}
+    <h3 className="mb-4 text-lg font-semibold text-slate-700">
+      {index + 1}. Book Details
+    </h3>
 
-              <input
-                type="text"
-                placeholder="Author"
-                value={book.author}
-                onChange={(e) =>
-                  setBook({ ...book, author: e.target.value })
-                }
-                className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-              />
+    <div className="grid gap-5 md:grid-cols-2">
+      <input
+        type="text"
+        placeholder="Book Title"
+        value={book.title}
+        onChange={(e) =>
+          handleBookChange(index, "title", e.target.value)
+        }
+        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+      />
 
-              <input
-                type="text"
-                placeholder="ISBN"
-                value={book.isbn}
-                onChange={(e) =>
-                  setBook({ ...book, isbn: e.target.value })
-                }
-                className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
+      <input
+        type="text"
+        placeholder="Author"
+        value={book.author}
+        onChange={(e) =>
+          handleBookChange(index, "author", e.target.value)
+        }
+        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+      />
 
+      <input
+        type="text"
+        placeholder="ISBN"
+        value={book.isbn}
+        onChange={(e) =>
+          handleBookChange(index, "isbn", e.target.value)
+        }
+        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+      />
+    </div>
+  </div>
+))}
+
+            {/* ADD MORE BUTTON */}
+            <button
+              type="button"
+              onClick={addMoreBook}
+              className="mb-4 rounded-2xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              + Add More Book
+            </button>
+
+            {/* SUBMIT */}
             <button
               type="submit"
               disabled={submitting}
-              className="mt-8 w-full rounded-2xl bg-green-600 py-4 font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+              className="mt-4 w-full rounded-2xl bg-green-600 py-4 font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
             >
               {submitting
                 ? "Creating Borrow Record..."

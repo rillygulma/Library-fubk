@@ -34,17 +34,11 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
-    const { email, title, author, isbn } = body;
+    const { email, books, title, author, isbn } = body;
 
-    if (!email || !title || !author || !isbn) {
-      return NextResponse.json(
-        { success: false, message: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
+    // ================= USER LOOKUP =================
     const user = await User.findOne({
-      email: email.trim().toLowerCase(),
+      email: email?.trim().toLowerCase(),
     });
 
     if (!user) {
@@ -54,13 +48,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // ================= ROLE-BASED DUE DATE =================
     const role = (user.role || "").toLowerCase();
 
     let daysAllowed = 14;
 
-    if (role === "student") {
-      daysAllowed = 14;
-    } else if (["staff", "librarian", "admin"].includes(role)) {
+    if (role.includes("postgraduate")) {
+      daysAllowed = 30;
+    } else if (
+      role.includes("staff") ||
+      role.includes("librarian") ||
+      role.includes("admin")
+    ) {
       daysAllowed = 30;
     }
 
@@ -68,24 +67,61 @@ export async function POST(req: Request) {
     const dueDate = new Date();
     dueDate.setDate(borrowDate.getDate() + daysAllowed);
 
-    const borrow = await BorrowRequest.create({
-      user: user._id,
-      title: title.trim(),
-      author: author.trim(),
-      isbn: isbn.trim(),
+    // ================= MULTI BOOK SUPPORT =================
+    let borrowData = [];
 
-      // ✅ FIXED: must match schema enum
-      status: "borrowed",
+    if (Array.isArray(books) && books.length > 0) {
+      // MULTIPLE BOOKS
+      borrowData = books.map(
+        (book: { title?: string; author?: string; isbn?: string }) => ({
+          user: user._id,
+          title: book.title?.trim(),
+          author: book.author?.trim(),
+          isbn: book.isbn?.trim(),
+          status: "borrowed",
+          borrowDate,
+          dueDate,
+          isReturned: false,
+          fine: 0,
+        })
+      );
+    } else {
+      // SINGLE BOOK FALLBACK (BACKWARD COMPATIBILITY)
+      if (!title || !author || !isbn) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Provide either books array OR title, author, isbn",
+          },
+          { status: 400 }
+        );
+      }
 
-      borrowDate,
-      dueDate,
+      borrowData = [
+        {
+          user: user._id,
+          title: title.trim(),
+          author: author.trim(),
+          isbn: isbn.trim(),
+          status: "borrowed",
+          borrowDate,
+          dueDate,
+          isReturned: false,
+          fine: 0,
+        },
+      ];
+    }
 
-      isReturned: false,
-      fine: 0,
-    });
+    // ================= INSERT INTO DB =================
+    const borrows = await BorrowRequest.insertMany(borrowData);
 
     return NextResponse.json(
-      { success: true, borrow },
+      {
+        success: true,
+        message: "Borrow request(s) created successfully",
+        borrows,
+      },
       { status: 201 }
     );
   } catch (error) {
@@ -94,7 +130,8 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-        message: "Internal server error while creating borrow request",
+        message:
+          "Internal server error while creating borrow request",
       },
       { status: 500 }
     );
