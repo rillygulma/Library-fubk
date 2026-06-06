@@ -45,7 +45,7 @@ export default function BorrowBookPage() {
       setUser(null);
 
       const res = await fetch(
-        `/api/users/search?query=${encodeURIComponent(cleanedQuery)}`
+        `/api/users/search?query=${encodeURIComponent(cleanedQuery)}`,
       );
 
       const data = await res.json();
@@ -68,7 +68,7 @@ export default function BorrowBookPage() {
   const handleBookChange = (
     index: number,
     field: keyof Book,
-    value: string
+    value: string,
   ) => {
     const updated = [...books];
     updated[index][field] = value;
@@ -88,9 +88,7 @@ export default function BorrowBookPage() {
       return;
     }
 
-    const invalid = books.some(
-      (b) => !b.title || !b.author || !b.isbn
-    );
+    const invalid = books.some((b) => !b.title || !b.author || !b.isbn);
 
     if (invalid) {
       alert("Fill all book details");
@@ -124,23 +122,18 @@ export default function BorrowBookPage() {
       setUser(null);
     } catch (error) {
       console.error(error);
-      alert(
-        error instanceof Error ? error.message : "Something went wrong"
-      );
+      alert(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 p-4 md:p-8">
+    <main className="min-h-screen  p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
-
         {/* HEADER */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">
-            Borrow Book
-          </h1>
+          <h1 className="text-3xl font-bold text-blue-600">Borrow Book</h1>
           <p className="mt-2 text-slate-500">
             Search user by email or phone number and create borrow record.
           </p>
@@ -148,7 +141,7 @@ export default function BorrowBookPage() {
 
         {/* SEARCH CARD */}
         <div className="rounded-3xl bg-white p-6 shadow-lg">
-          <h2 className="mb-5 flex items-center gap-2 text-xl font-semibold">
+          <h2 className="mb-5 flex items-center gap-2 text-blue-600 text-xl font-semibold">
             <Search size={20} />
             Search User
           </h2>
@@ -175,7 +168,7 @@ export default function BorrowBookPage() {
         {/* USER INFO */}
         {user && (
           <div className="mt-8 rounded-3xl bg-white p-6 shadow-lg">
-            <h2 className="mb-5 flex items-center gap-2 text-xl font-semibold">
+            <h2 className="mb-5 flex items-center gap-2 text-blue-600 text-xl font-semibold">
               <User size={20} />
               User Information
             </h2>
@@ -219,56 +212,55 @@ export default function BorrowBookPage() {
             onSubmit={handleBorrow}
             className="mt-8 rounded-3xl bg-white p-6 shadow-lg"
           >
-            <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+            <h2 className="mb-6 flex items-center text-blue-600 gap-2 text-xl font-semibold">
               <BookOpen size={20} />
               Book Details
             </h2>
 
             {/* BOOK INPUTS */}
-            {/* BOOK INPUTS */}
-{books.map((book, index) => (
-  <div
-    key={index}
-    className="mb-6 rounded-2xl border border-gray-200 p-4"
-  >
-    {/* NUMBER LABEL */}
-    <h3 className="mb-4 text-lg font-semibold text-slate-700">
-      {index + 1}. Book Details
-    </h3>
+            {books.map((book, index) => (
+              <div
+                key={index}
+                className="mb-6 rounded-2xl border border-gray-200 p-4"
+              >
+                {/* NUMBER LABEL */}
+                <h3 className="mb-4 text-lg font-semibold text-slate-700">
+                  {index + 1}. Book Details
+                </h3>
 
-    <div className="grid gap-5 md:grid-cols-2">
-      <input
-        type="text"
-        placeholder="Book Title"
-        value={book.title}
-        onChange={(e) =>
-          handleBookChange(index, "title", e.target.value)
-        }
-        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-      />
+                <div className="grid gap-5 md:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder="Book Title"
+                    value={book.title}
+                    onChange={(e) =>
+                      handleBookChange(index, "title", e.target.value)
+                    }
+                    className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  />
 
-      <input
-        type="text"
-        placeholder="Author"
-        value={book.author}
-        onChange={(e) =>
-          handleBookChange(index, "author", e.target.value)
-        }
-        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-      />
+                  <input
+                    type="text"
+                    placeholder="Author"
+                    value={book.author}
+                    onChange={(e) =>
+                      handleBookChange(index, "author", e.target.value)
+                    }
+                    className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  />
 
-      <input
-        type="text"
-        placeholder="ISBN"
-        value={book.isbn}
-        onChange={(e) =>
-          handleBookChange(index, "isbn", e.target.value)
-        }
-        className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
-      />
-    </div>
-  </div>
-))}
+                  <input
+                    type="text"
+                    placeholder="ISBN"
+                    value={book.isbn}
+                    onChange={(e) =>
+                      handleBookChange(index, "isbn", e.target.value)
+                    }
+                    className="rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            ))}
 
             {/* ADD MORE BUTTON */}
             <button

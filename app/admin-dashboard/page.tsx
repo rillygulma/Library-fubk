@@ -309,13 +309,18 @@ export default function AdminDashboard() {
             },
             {
               icon: BookOpen,
-              label: "Book Management",
-              path: "#",
+              label: "Create Borrow Books",
+              path: "/admin/borrow-request",
             },
             {
               icon: ClipboardList,
-              label: "Book Requests",
-              path: "#",
+              label: "Return Borrowed Books",
+              path: "/admin/return-borrowedBook",
+            },
+            {
+              icon: ClipboardList,
+              label: "All Borrowed Due Books",
+              path: "/admin/overdue-books",
             },
             {
               icon: Megaphone,

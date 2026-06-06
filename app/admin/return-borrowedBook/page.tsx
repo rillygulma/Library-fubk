@@ -36,7 +36,7 @@ export default function ReturnBookPage() {
       setSelected(null);
 
       const res = await fetch(
-        `/api/borrow-request/search?query=${encodeURIComponent(query)}`
+        `/api/borrow-request/search?query=${encodeURIComponent(query)}`,
       );
 
       const data = await res.json();
@@ -61,12 +61,9 @@ export default function ReturnBookPage() {
     try {
       setReturning(true);
 
-      const res = await fetch(
-        `/api/borrow-request/return/${id}`,
-        {
-          method: "PUT",
-        }
-      );
+      const res = await fetch(`/api/borrow-request/return/${id}`, {
+        method: "PUT",
+      });
 
       const data = await res.json();
 
@@ -79,31 +76,24 @@ export default function ReturnBookPage() {
       // refresh UI locally
       setBorrows((prev) =>
         prev.map((b) =>
-          b._id === id
-            ? { ...b, isReturned: true, status: "returned" }
-            : b
-        )
+          b._id === id ? { ...b, isReturned: true, status: "returned" } : b,
+        ),
       );
 
       setSelected(null);
     } catch (error) {
-      alert(
-        error instanceof Error ? error.message : "Failed to return book"
-      );
+      alert(error instanceof Error ? error.message : "Failed to return book");
     } finally {
       setReturning(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
+    <main className="min-h-screen p-6">
       <div className="mx-auto max-w-4xl">
-
         {/* HEADER */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Return Book
-          </h1>
+          <h1 className="text-3xl font-bold text-blue-600">Return Book</h1>
           <p className="text-gray-500">
             Search all borrowed books by user or ISBN
           </p>
@@ -133,67 +123,57 @@ export default function ReturnBookPage() {
         {borrows.length > 0 && (
           <div className="mt-6 space-y-4">
             {borrows.map((borrow, index) => (
-  <div
-    key={borrow._id}
-    className="rounded-2xl bg-white p-6 shadow"
-  >
-    {/* ✅ NUMBERING ADDED HERE */}
-    <div className="mb-2 text-sm font-semibold text-gray-500">
-      {index + 1}. Book Details
-    </div>
+              <div key={borrow._id} className="rounded-2xl bg-white p-6 shadow">
+                {/* ✅ NUMBERING ADDED HERE */}
+                <div className="mb-2 text-sm font-semibold text-blue-600">
+                  {index + 1}. Book Details
+                </div>
 
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-xl font-bold">
-          {borrow.title}
-        </h2>
-        <p className="text-gray-500">{borrow.author}</p>
-        <p className="text-sm text-gray-400">
-          ISBN: {borrow.isbn}
-        </p>
-      </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">{borrow.title}</h2>
+                    <p className="text-gray-500">{borrow.author}</p>
+                    <p className="text-sm text-gray-400">ISBN: {borrow.isbn}</p>
+                  </div>
 
-      <span
-        className={`rounded-full px-4 py-2 text-sm ${
-          borrow.isReturned
-            ? "bg-green-100 text-green-700"
-            : "bg-yellow-100 text-yellow-700"
-        }`}
-      >
-        {borrow.isReturned ? "Returned" : "Borrowed"}
-      </span>
-    </div>
+                  <span
+                    className={`rounded-full px-4 py-2 text-sm ${
+                      borrow.isReturned
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {borrow.isReturned ? "Returned" : "Borrowed"}
+                  </span>
+                </div>
 
-    <div className="mt-4 text-sm text-gray-600">
-      <p>
-        Borrowed by: <b>{borrow.user.fullName}</b>
-      </p>
-      <p>Email: {borrow.user.email}</p>
-      <p>
-        Due Date:{" "}
-        {new Date(borrow.dueDate).toDateString()}
-      </p>
-    </div>
+                <div className="mt-4 text-sm text-gray-600">
+                  <p>
+                    Borrowed by: <b>{borrow.user.fullName}</b>
+                  </p>
+                  <p>Email: {borrow.user.email}</p>
+                  <p>Due Date: {new Date(borrow.dueDate).toDateString()}</p>
+                </div>
 
-    {!borrow.isReturned && (
-      <button
-        onClick={() => handleReturn(borrow._id)}
-        disabled={returning}
-        className="mt-4 flex items-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-white"
-      >
-        <BookCheck size={18} />
-        {returning ? "Processing..." : "Mark as Returned"}
-      </button>
-    )}
+                {!borrow.isReturned && (
+                  <button
+                    onClick={() => handleReturn(borrow._id)}
+                    disabled={returning}
+                    className="mt-4 flex items-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-white"
+                  >
+                    <BookCheck size={18} />
+                    {returning ? "Processing..." : "Mark as Returned"}
+                  </button>
+                )}
 
-    {borrow.isReturned && (
-      <div className="mt-3 flex items-center gap-2 text-green-600">
-        <AlertCircle size={18} />
-        Already returned
-      </div>
-    )}
-  </div>
-))}
+                {borrow.isReturned && (
+                  <div className="mt-3 flex items-center gap-2 text-green-600">
+                    <AlertCircle size={18} />
+                    Already returned
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
