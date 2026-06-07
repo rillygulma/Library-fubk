@@ -172,22 +172,22 @@ useEffect(() => {
             },
             { 
               icon: BookOpen, 
-              label: "Book Management", 
-              path: "#" 
+              label: "Create Borrow Books", 
+              path: "/admin/borrow-request" 
             },
             { 
               icon: ClipboardList, 
-              label: "Book Requests", 
-              path: "#" 
+              label: "Return Borrowed Books", 
+              path: "/admin/return-borrowedBook" 
             },
             {
               icon: Megaphone,
-              label: "Announcements",
+              label: "Create Announcements",
               path: "/admin/announcements",
             },
             {
               icon: MessageCircle,
-              label: "Contact Us Message",
+              label: "Contact us Messages",
               path: "/admin/contact-messages",
             },
           ].map((item, index) => (
