@@ -50,7 +50,7 @@ const WelcomeNotePage = () => {
       <p className="font-semibold italic text-gray-800 text-sm sm:text-base">
         Regards,
         <br />
-        Prof. Ahmad Audu Balarabe CLN, FNLA
+        Prof. Ahmad Abdu Balarabe CLN, FNLA
       </p>
     </div>
   );
