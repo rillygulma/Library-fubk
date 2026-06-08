@@ -79,11 +79,11 @@ export default function LibraryChatbot() {
           />
 
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-gray-800">
+            <h1 className="text-lg md:text-xl font-bold text-blue-600">
               📚 FUBK Library AI Assistant
             </h1>
             <p className="text-xs text-gray-500">
-              Powered by FUBK AI
+              Powered by E-library FUBK
             </p>
           </div>
         </div>

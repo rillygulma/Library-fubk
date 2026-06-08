@@ -262,7 +262,7 @@ useEffect(() => {
                 Dashboard Overview
               </h2>
               <p className="text-sm text-gray-500">
-                Welcome back, Administrator
+                Welcome back, Librarian
               </p>
             </div>
           </div>
