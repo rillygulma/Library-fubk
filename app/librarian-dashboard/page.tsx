@@ -5,7 +5,6 @@ import {
   Users,
   BookOpen,
   Bell,
-  Search,
   Menu,
   X,
   Activity,
@@ -64,7 +63,10 @@ export default function LibrarianDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
+  // ================= FETCH USERS =================
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -79,6 +81,7 @@ export default function LibrarianDashboard() {
     fetchUsers();
   }, []);
 
+  // ================= CONTACT MESSAGES =================
   useEffect(() => {
     const fetchContactMessages = async () => {
       try {
@@ -93,12 +96,12 @@ export default function LibrarianDashboard() {
     fetchContactMessages();
   }, []);
 
-useEffect(() => {
+  // ================= CURRENT USER =================
+  useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        // avoid synchronous setState inside effect to prevent cascading renders
         const t = setTimeout(() => setCurrentUser(parsed), 0);
         return () => clearTimeout(t);
       } catch (err) {
@@ -107,6 +110,18 @@ useEffect(() => {
     }
   }, []);
 
+  const filteredRecentUsers = users.filter((user) => {
+    const matchesSearch =
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
+    return matchesSearch && matchesRole;
+  });
+
+  // ================= LOGOUT =================
   const handleLogout = async () => {
     try {
       await fetch("/api/logout", { method: "POST" });
@@ -144,7 +159,9 @@ useEffect(() => {
             />
 
             <div>
-              <h1 className="text-2xl font-bold text-blue-700">FUBK Librarian</h1>
+              <h1 className="text-2xl font-bold text-blue-700">
+                FUBK Librarian
+              </h1>
               <p className="text-sm text-gray-500">Management Dashboard</p>
             </div>
           </div>
@@ -165,20 +182,20 @@ useEffect(() => {
               label: "Dashboard",
               path: "/librarian-dashboard",
             },
-            { 
-              icon: Users, 
-              label: "Users", 
-              path: "/register" 
+            {
+              icon: Users,
+              label: "Users",
+              path: "/register",
             },
-            { 
-              icon: BookOpen, 
-              label: "Create Borrow Books", 
-              path: "/admin/borrow-request" 
+            {
+              icon: BookOpen,
+              label: "Create Borrow Books",
+              path: "/admin/borrow-request",
             },
-            { 
-              icon: ClipboardList, 
-              label: "Return Borrowed Books", 
-              path: "/admin/return-borrowedBook" 
+            {
+              icon: ClipboardList,
+              label: "Return Borrowed Books",
+              path: "/admin/return-borrowedBook",
             },
             {
               icon: Megaphone,
@@ -194,27 +211,20 @@ useEffect(() => {
             <Link
               key={index}
               href={item.path}
-              className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition-all duration-300 ${
+              className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 ${
                 index === 0
-                  ? "bg-blue-600 text-white shadow-lg"
+                  ? "bg-blue-600 text-white"
                   : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
-              <div className="relative">
-                <item.icon className="h-5 w-5" />
-
-                {item.label === "Contact Us Message" &&
-                  contactMessages.length > 0 && (
-                    <>
-                      <span className="absolute -right-2 -top-2 flex h-5 w-5 animate-ping rounded-full bg-red-500"></span>
-                      <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
-                        {contactMessages.length}
-                      </span>
-                    </>
-                  )}
-              </div>
-
+              <item.icon className="h-5 w-5" />
               <span className="font-medium">{item.label}</span>
+
+              {item.label.includes("Contact") && contactMessages.length > 0 && (
+                <span className="ml-auto rounded-full bg-red-600 px-2 text-xs text-white">
+                  {contactMessages.length}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
@@ -223,31 +233,17 @@ useEffect(() => {
         <div className="px-4 pb-4">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left text-gray-700 transition-all duration-300 hover:bg-red-50 hover:text-red-700"
+            className="flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-gray-700 hover:bg-red-50 hover:text-red-700"
           >
             <LogOut className="h-5 w-5" />
             <span className="font-medium">Logout</span>
           </button>
         </div>
-
-        {/* Bottom Card */}
-        <div className="p-4">
-          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl">
-            <h2 className="text-lg font-semibold">Need Help?</h2>
-            <p className="mt-2 text-sm text-blue-100">
-              Contact the ICT department for technical assistance.
-            </p>
-
-            <button className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
-              Contact Support
-            </button>
-          </div>
-        </div>
       </aside>
 
-      {/* Main Content */}
+      {/* MAIN */}
       <main className="lg:ml-72">
-        {/* Header */}
+        {/* HEADER */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
@@ -258,74 +254,95 @@ useEffect(() => {
             </button>
 
             <div>
-              <h2 className="text-xl font-bold text-blue-700 sm:text-2xl">
+              <h2 className="text-xl font-bold text-blue-700">
                 Dashboard Overview
               </h2>
-              <p className="text-sm text-gray-500">
-                Welcome back, Librarian
-              </p>
+              <p className="text-sm text-gray-500">Welcome back, Librarian</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="hidden items-center rounded-2xl border bg-gray-50 px-4 py-2 md:flex">
-              <Search className="h-4 w-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="ml-2 bg-transparent text-sm outline-none"
-              />
-            </div>
+          <div className="flex items-center gap-3">
+            <Bell className="h-5 w-5" />
 
-            <button className="relative rounded-xl bg-gray-100 p-3 hover:bg-gray-200">
-              <Bell className="h-5 w-5 text-gray-700" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
-
-            <div className="flex items-center gap-3 rounded-2xl bg-gray-100 px-3 py-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
-                {currentUser?.fullName?.charAt(0) || "A"}
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                {currentUser?.fullName?.charAt(0) || "L"}
               </div>
-
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold text-gray-800">
-                  {currentUser?.fullName || "Admin"}
-                </p>
-                <p className="text-xs text-gray-500 uppercase">
-                  {currentUser?.role || "System User"}
-                </p>
-              </div>
+              <span>{currentUser?.fullName || "Librarian"}</span>
             </div>
           </div>
         </header>
 
-        {/* Stats */}
-        <div className="p-4 sm:p-6 lg:p-8">
-          <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="rounded-3xl bg-white p-6 shadow-md"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">{stat.title}</p>
-                    <h3 className="mt-2 text-3xl font-bold text-gray-800">
-                      {stat.value}
-                    </h3>
-                  </div>
+        {/* STATS */}
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {stats.map((s, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl shadow">
+              <s.icon />
+              <h3 className="text-2xl font-bold">{s.value}</h3>
+              <p className="text-gray-500">{s.title}</p>
+            </div>
+          ))}
+        </div>
 
-                  <div className="rounded-2xl bg-blue-100 p-4 text-blue-700">
-                    <stat.icon className="h-6 w-6" />
-                  </div>
-                </div>
+        {/* RECENT USERS (ADDED) */}
+        <div className="p-6">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* SEARCH */}
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full sm:w-1/2 rounded-xl border p-2"
+            />
 
-                <p className="mt-5 text-sm font-medium text-green-600">
-                  {stat.growth}
-                </p>
+            {/* FILTER */}
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full sm:w-1/4 rounded-xl border p-2"
+            >
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="librarian">Librarian</option>
+              <option value="undergraduate">Undergraduate</option>
+              <option value="postgraduate">Postgraduate</option>
+            </select>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow overflow-x-auto">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-bold">Recent Users</h2>
+              <p className="text-sm text-gray-500">Latest registered users</p>
+            </div>
+
+            <table className="w-full">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="p-4">Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredRecentUsers.slice(0, 10).map((u) => (
+                  <tr key={u._id} className="border-b hover:bg-gray-50">
+                    <td className="p-4">{u.fullName}</td>
+                    <td>{u.email}</td>
+                    <td>{u.role}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {filteredRecentUsers.length === 0 && (
+              <div className="p-6 text-center text-gray-500">
+                No users found
               </div>
-            ))}
-          </section>
+            )}
+          </div>
         </div>
       </main>
     </div>
