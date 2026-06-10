@@ -184,7 +184,7 @@ export default function LibrarianDashboard() {
             },
             {
               icon: Users,
-              label: "Users",
+              label: "Register Users",
               path: "/register",
             },
             {
@@ -238,6 +238,20 @@ export default function LibrarianDashboard() {
             <LogOut className="h-5 w-5" />
             <span className="font-medium">Logout</span>
           </button>
+        </div>
+
+        {/* Bottom Card */}
+        <div className="p-4">
+          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-xl">
+            <h2 className="text-lg font-semibold">Need Help?</h2>
+            <p className="mt-2 text-sm text-blue-100">
+              Contact the ICT department for technical assistance.
+            </p>
+
+            <button className="mt-4 w-full rounded-xl bg-white py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">
+              Contact Support
+            </button>
+          </div>
         </div>
       </aside>
 
