@@ -11,6 +11,7 @@ import {
   Bookmark,
   ClipboardList,
   LogOut,
+  Bot,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -117,9 +118,14 @@ export default function UserDashboard() {
         <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
           {[
             {
-              icon: LayoutDashboard,
+              icon: Bot,
               label: "FUBK AI",
               path: "/research-ai",
+            },
+            {
+              icon: Bot,
+              label: "AI Generate PDF",
+              path: "/generate-pdf",
             },
             {
               icon: BookOpen,

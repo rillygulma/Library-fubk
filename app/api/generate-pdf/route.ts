@@ -13,10 +13,7 @@ export async function POST(req: NextRequest) {
     const { topic } = await req.json();
 
     if (!topic) {
-      return Response.json(
-        { message: "Topic is required" },
-        { status: 400 }
-      );
+      return Response.json({ message: "Topic is required" }, { status: 400 });
     }
 
     // 1. Get AI content
@@ -25,34 +22,44 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content:
-            "You are a professional educational writer.",
+          content: "You are a professional educational writer.",
         },
         {
           role: "user",
           content: `
 Write a detailed structured article about "${topic}".
-Include:
-- Introduction
-- Main Concepts
-- Examples
-- Benefits
-- Conclusion
+You are an expert academic writer and textbook author.
+
+Write a VERY DETAILED, LONG, structured educational article.
+Use clear headings and subheadings.
+
+The article MUST include:
+1. Title explanation
+2. Introduction (deep and detailed)
+3. Background / History (if applicable)
+4. Core Concepts (very detailed explanation)
+5. Real-world Examples (at least 3)
+6. Advantages
+7. Disadvantages / Limitations
+8. Case studies or use cases
+9. Common mistakes or misconceptions
+10. Conclusion (deep summary)
+
+Make it feel like a university-level lecture note or eBook chapter.
 `,
         },
       ],
     });
 
     const article =
-      completion.choices[0]?.message?.content ||
-      "No content generated.";
+      completion.choices[0]?.message?.content || "No content generated.";
 
     // 2. Convert React PDF → Buffer
     const pdfBuffer = await renderToBuffer(
       React.createElement(PdfDocument as React.ComponentType<any>, {
         topic,
         content: article,
-      })
+      }),
     );
 
     // 3. Return file
@@ -67,7 +74,7 @@ Include:
 
     return Response.json(
       { message: "Failed to generate PDF" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
